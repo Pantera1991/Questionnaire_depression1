@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -12,6 +13,7 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,19 +23,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.example.pantera.questionnaire_depression.api.RestClient;
+import com.example.pantera.questionnaire_depression.model.Patient;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import retrofit2.Call;
+import retrofit2.Response;
+
 /**
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity {
 
 
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -44,11 +49,20 @@ public class LoginActivity extends AppCompatActivity {
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private SessionManager sessionManager;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        sessionManager = new SessionManager(getApplicationContext());
+        sessionManager.checkLogin();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
         // Set up the login form.
         mLoginView = (EditText) findViewById(R.id.login);
 
@@ -62,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
                         hideKeyboard();
                         attemptLogin();
                         return true;
-                    }else {
+                    } else {
                         Snackbar.make(textView, getResources().getString(R.string.offline_network), Snackbar.LENGTH_LONG)
                                 .setAction("Action", null).show();
                         return false;
@@ -85,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 
@@ -151,7 +165,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean isLoginValid(String login) {
         //TODO: Replace this with your own logic
-        return login.contains("@");
+        return true;//login.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
@@ -204,6 +218,7 @@ public class LoginActivity extends AppCompatActivity {
 
         private final String mLogin;
         private final String mPassword;
+        private Response<Patient> response;
 
         UserLoginTask(String email, String password) {
             mLogin = email;
@@ -214,19 +229,14 @@ public class LoginActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
-            try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
+            RestClient restClient = new RestClient(getApplicationContext());
+            Call<Patient> patientCall = restClient.get().login(mLogin, mPassword);
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mLogin)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
+            try {
+                response = patientCall.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
 
             // TODO: register the new account here.
@@ -239,10 +249,40 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
 
             if (success) {
-                finish();
+                switch (response.code()) {
+                    case 200:
+                        Patient patient = response.body();
+
+                        String setCookie = response.headers().get("Set-Cookie");
+                        Pattern word = Pattern.compile("([A-Z]*\\=[0-9A-Z]*)");
+                        Matcher matcher = word.matcher(setCookie);
+                        String cookieValue = "";
+                        if (matcher.find()) {
+                            cookieValue = matcher.group(1);
+                        }
+
+                        if (patient != null) {
+                            sessionManager.createLoginSession(patient, cookieValue);
+
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Snackbar.make(mLoginFormView, getResources().getString(R.string.error_load_user_data), Snackbar.LENGTH_LONG)
+                                    .setAction("Action", null).show();
+                        }
+
+                        break;
+                    default:
+                        Log.e("Response code", String.valueOf(response.code()));
+                        mPasswordView.setError(getString(R.string.error_incorrect_password));
+                        mPasswordView.requestFocus();
+                        break;
+                }
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                Snackbar.make(mLoginFormView, getResources().getString(R.string.offline_serv), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         }
 

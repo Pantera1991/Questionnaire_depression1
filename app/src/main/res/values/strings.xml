@@ -15,4 +15,6 @@
     </string>
     <string name="name_questionnaire">Skala depresji\nBecka</string>
     <string name="offline_network">Brak połączenia z internetem</string>
+    <string name="offline_serv">Brak połączenia z serwerem</string>
+    <string name="error_load_user_data">Problem z załadowaniem danych użytkownika.</string>
 </resources>
