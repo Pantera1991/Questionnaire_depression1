@@ -1,10 +1,12 @@
 package com.example.pantera.questionnaire_depression.model;
 
+import java.io.Serializable;
+
 /**
  * Created by Pantera on 2016-12-22.
  */
 
-public class User {
+public class User implements Serializable{
     private int id;
     private String username;
     private boolean enabled;

@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Patient;
+import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
@@ -38,10 +39,7 @@ import retrofit2.Response;
  */
 public class LoginActivity extends AppCompatActivity {
 
-
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
+    private static final String TAG = "LoginActivity";
     private UserLoginTask mAuthTask = null;
 
     // UI references.
@@ -249,10 +247,10 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
 
             if (success) {
+                Log.e(TAG, "Response code" + String.valueOf(response.code()));
                 switch (response.code()) {
                     case 200:
                         Patient patient = response.body();
-
                         String setCookie = response.headers().get("Set-Cookie");
                         Pattern word = Pattern.compile("([A-Z]*\\=[0-9A-Z]*)");
                         Matcher matcher = word.matcher(setCookie);
@@ -274,10 +272,13 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         break;
-                    default:
-                        Log.e("Response code", String.valueOf(response.code()));
+                    case 401:
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();
+                        break;
+                    default:
+                        Snackbar.make(mLoginFormView, getResources().getString(R.string.offline_serv), Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
                         break;
                 }
             } else {

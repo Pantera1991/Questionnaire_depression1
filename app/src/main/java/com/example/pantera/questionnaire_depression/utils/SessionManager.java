@@ -1,9 +1,11 @@
-package com.example.pantera.questionnaire_depression;
+package com.example.pantera.questionnaire_depression.utils;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 
+import com.example.pantera.questionnaire_depression.LoginActivity;
+import com.example.pantera.questionnaire_depression.MainActivity;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.User;
 
@@ -34,7 +36,7 @@ public class SessionManager {
         editor = pref.edit();
     }
 
-    
+
     public void createLoginSession(Patient patient, String cookie) {
 
         editor.putBoolean(IS_LOGIN, true);
@@ -52,12 +54,8 @@ public class SessionManager {
 
     public void checkLogin() {
         // Check login status
-        if (!this.isLoggedIn()) {
+        if (this.isLoggedIn()) {
             // user is not logged in redirect him to Login Activity
-            Intent i = new Intent(mContext, LoginActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            mContext.startActivity(i);
-        }else {
             Intent i = new Intent(mContext, MainActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             mContext.startActivity(i);
@@ -74,7 +72,7 @@ public class SessionManager {
         User user = new User();
         patient.setId(pref.getInt(KEY_ID, 0));
         patient.setName(pref.getString(KEY_NAME, null));
-        patient.setName(pref.getString(KEY_SURNAME, null));
+        patient.setSurname(pref.getString(KEY_SURNAME, null));
         user.setId(pref.getInt(KEY_USER_ID, 0));
         user.setUsername(pref.getString(KEY_USER_USERNAME, null));
         user.setEnabled(pref.getBoolean(KEY_USER_ENABLED, false));
