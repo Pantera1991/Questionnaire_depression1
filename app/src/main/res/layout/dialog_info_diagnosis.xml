@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root_dialog_layout"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:id="@+id/horizontalScrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <LinearLayout
+            android:id="@+id/shapeLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/activity_horizontal_margin">
+
+            <TextView
+                android:id="@+id/dialog_diagnosis_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableTop="@drawable/circles"
+                android:drawablePadding="5dp"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin"
+                android:textSize="16sp"
+                android:gravity="center_vertical"/>
+
+            <TextView
+                android:id="@+id/dialog_diagnosis_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="5dp"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin"
+                android:textSize="16sp"
+                android:gravity="center_vertical"/>
+
+            <TextView
+                android:id="@+id/dialog_diagnosis_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="5dp"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin"
+                android:textSize="16sp"
+                android:gravity="center_vertical"/>
+
+            <TextView
+                android:id="@+id/dialog_diagnosis_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawablePadding="5dp"
+                android:layout_marginBottom="@dimen/activity_horizontal_margin"
+                android:textSize="16sp"
+                android:gravity="center_vertical"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

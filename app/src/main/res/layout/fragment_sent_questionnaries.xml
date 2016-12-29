@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Login progress -->
+    <ProgressBar
+        android:id="@+id/sent_ques_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/layout_rv_sent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:background="#FCFCFC">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="15dp"
+                android:textColor="@color/colorPrimary"
+                android:textStyle="bold"
+                android:text="Rodzaje depresji"
+                android:id="@+id/tvTitle" />
+
+            <Button
+                android:id="@+id/btnInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="30dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp"
+                android:layout_marginLeft="15dp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:text="INFO"
+                android:background="@drawable/selector_btn"/>
+        </RelativeLayout>
+        <!--<view-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="1px" android:background="@color/colorPrimary"/>-->
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/sent_ques_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            android:visibility="visible" />
+    </LinearLayout>
+
+
+</LinearLayout>

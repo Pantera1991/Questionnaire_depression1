@@ -3,8 +3,10 @@ package com.example.pantera.questionnaire_depression;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,6 +20,7 @@ import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Question;
 import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
 
+import java.io.IOException;
 import java.util.List;
 
 import retrofit2.Call;
@@ -39,41 +42,38 @@ public class QuestionActivity extends AppCompatActivity {
 
         restClient = new RestClient(getApplicationContext());
 
+        mProgressView = findViewById(R.id.question_progress);
+
         mRecyclerView = (RecyclerView) findViewById(R.id.question_recycler_view);
         mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(QuestionActivity.this));
-
         if (mRecyclerView != null) {
             mRecyclerView.setHasFixedSize(true);
         }
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(QuestionActivity.this);
-        //GridLayoutManager mLayoutManager = new GridLayoutManager(this, 1);
         mRecyclerView.setLayoutManager(mLayoutManager);
         registerForContextMenu(mRecyclerView);
 
-
-        mProgressView = findViewById(R.id.question_progress);
-
         loadData();
-
+        //new LoadData().execute();
     }
 
-    private void loadData(){
+    private void loadData() {
         showProgress(true);
         Call<List<Question>> call = restClient.get().questions("becka");
 
         call.enqueue(new Callback<List<Question>>() {
+
             @Override
             public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
                 Log.d("status question", String.valueOf(response.code()));
 
-                switch (response.code()){
+                switch (response.code()) {
                     case 200:
                         List<Question> questionList = response.body();
-
                         mAdapter = new QuestionAdapter(questionList, QuestionActivity.this);
                         mRecyclerView.setAdapter(mAdapter);
-
+                        showProgress(false);
                         break;
                     case 404:
                         showProgress(false);
@@ -90,7 +90,7 @@ public class QuestionActivity extends AppCompatActivity {
                 ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
             }
         });
-        showProgress(false);
+
     }
 
     @Override
@@ -104,24 +104,23 @@ public class QuestionActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.action_menu_done:
                 QuestionAdapter adapter = (QuestionAdapter) mAdapter;
-                int size = adapter.getItemCount();
-                float sum = 0;
-                boolean allQuestions = true;
-//                for (int i = 0; i < size; i++) {
-//                    sum += adapter.getItem(i).getRating();
-//                    if (adapter.getItem(i).getRating() == 0) {
-//                        allQuestions = false;
-//                    }
-//                }
+                List<Integer> list = adapter.checkSelectedAllQuestion();
+                if (list.size() > 0) {
+                    String msg = "Nie zaznaczyłeś/aś wszystkich pytań \n"+list.toString().replaceAll("[\\[*\\]]", "");
+                    String title = "Nie można wysłać ankiety !";
+                    showDialog(msg,title);
+                } else {
+                    int size = adapter.getItemCount() * 4;
+                    float sum = 0;
+                    for (int i = 0; i < size; i++) {
+                        Question q = adapter.getItem(i);
+                        if (q.getSelectOption()) {
+                            sum += q.getPoints();
+                        }
+                    }
 
-//                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//                final String studentName = sharedPreferences.getString(Constants.USER_NAME, "");
-//
-//                if (!allQuestions) {
-//                    showDialog(studentName,sum);
-//                }else{
-//                    sendForm(studentName,sum);
-//                }
+                    Log.d("sum", String.valueOf(sum));
+                }
 
                 break;
 
@@ -129,9 +128,6 @@ public class QuestionActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Shows the progress UI and hides the login form.
-     */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
@@ -162,6 +158,58 @@ public class QuestionActivity extends AppCompatActivity {
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void showDialog(final String text,String title) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(QuestionActivity.this);
+        builder.setMessage(text)
+                .setTitle(title)
+                .setCancelable(false)
+                .setPositiveButton("OK", null);
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    public class LoadData extends AsyncTask<Void, Void , Response<List<Question>>>{
+
+        @Override
+        protected void onPreExecute() {
+            showProgress(true);
+        }
+
+        @Override
+        protected Response<List<Question>> doInBackground(Void... voids) {
+
+            Call<List<Question>> call = restClient.get().questions("becka");
+            Response<List<Question>> response = null;
+            try {
+                response = call.execute();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return response;
+        }
+
+        @Override
+        protected void onPostExecute(Response<List<Question>> response) {
+            if(response != null){
+                switch (response.code()) {
+                    case 200:
+                        List<Question> questionList = response.body();
+                        mAdapter = new QuestionAdapter(questionList, QuestionActivity.this);
+                        mRecyclerView.setAdapter(mAdapter);
+                        showProgress(false);
+                        break;
+                    case 404:
+                        showProgress(false);
+                        ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
+                        break;
+                }
+            }else{
+                showProgress(false);
+                ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
+            }
         }
     }
 }

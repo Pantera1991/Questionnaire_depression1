@@ -18,13 +18,13 @@ public class Question implements Serializable{
     @SerializedName("groupofquestion")
     private GroupOfQuestion groupOfQuestion;
     @Expose
-    private int selectOption;
+    private boolean selectOption;
 
-    public int getSelectOption() {
+    public boolean getSelectOption() {
         return selectOption;
     }
 
-    public Question setSelectOption(int selectOption) {
+    public Question setSelectOption(boolean selectOption) {
         this.selectOption = selectOption;
         return this;
     }

@@ -4,6 +4,8 @@ import android.app.Application;
 
 import com.facebook.stetho.Stetho;
 
+import net.danlew.android.joda.JodaTimeAndroid;
+
 /**
  * Created by Pantera on 2016-12-22.
  */
@@ -31,5 +33,7 @@ public class QuestionnaireApplication extends Application {
 
         // Initialize Stetho with the Initializer
         Stetho.initialize(initializer);
+        // init joda time
+        JodaTimeAndroid.init(this);
     }
 }

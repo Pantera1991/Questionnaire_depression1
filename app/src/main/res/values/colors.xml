@@ -9,4 +9,12 @@
     <color name="input_register_bg">#3b4148</color>
     <color name="input_register_hint">#5e6266</color>
     <color name="iron">#CCCCCC</color>
+    <color name="colorSecondaryText">#727272</color>
+    <color name="colorPrimaryText">#212121</color>
+    <color name="secondBackground">#303030</color>
+
+    <color name="color1">#64DD17</color>
+    <color name="color2">#FFAB00</color>
+    <color name="color3">#FF6D00</color>
+    <color name="color4">#DD2C00</color>
 </resources>

@@ -27,4 +27,5 @@
     <string name="title_activity_question">Ankieta</string>
     <string name="login">Logowanie...</string>
     <string name="loading_data">Wczytywanie danych....</string>
+    <string name="diagnosis">DIAGNOZA</string>
 </resources>

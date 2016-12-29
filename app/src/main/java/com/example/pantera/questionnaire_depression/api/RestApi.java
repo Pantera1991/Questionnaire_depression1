@@ -1,5 +1,7 @@
 package com.example.pantera.questionnaire_depression.api;
 
+import com.example.pantera.questionnaire_depression.model.Answer;
+import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
 
@@ -28,4 +30,9 @@ public interface RestApi {
     @GET("/rest/questionsservice/getallquestionsbytype/{type}")
     Call<List<Question>> questions(@Path("type") String type);
 
+    @GET("rest/answerservice/getanswersbypatient/{id}")
+    Call<List<Answer>> getAnswers(@Path("id") int id);
+
+    @GET("/rest/userservice/getdoctorbyid/{id}")
+    Call<Doctor> getInformationAboutDoctor(@Path("id") int id);
 }

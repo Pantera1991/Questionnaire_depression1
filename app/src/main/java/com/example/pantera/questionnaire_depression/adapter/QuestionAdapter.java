@@ -1,9 +1,8 @@
 package com.example.pantera.questionnaire_depression.adapter;
 
 import android.content.Context;
-import android.os.Build;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.TextView;
 import com.example.pantera.questionnaire_depression.R;
 import com.example.pantera.questionnaire_depression.model.Question;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,7 +23,6 @@ import java.util.List;
  */
 
 public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
 
     private List<Question> listOfQuestion;
     private Context mContext;
@@ -53,17 +52,20 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         questionViewHolderItem.title.setText(title);
         RadioGroup radioGroup = questionViewHolderItem.radioGroup;
         radioGroup.removeAllViews();
-        radioGroup.setTag("Tag");
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                Log.d("adapter pos: ", String.valueOf((holder.getAdapterPosition() + 1)) + " i:" + String.valueOf(i));
-                Question q = listOfQuestion.get(i - 1);
-                if (q.getSelectOption() == 0) {
-                    q.setSelectOption(i);
-                    notifyItemRangeChanged(0, getItemCount());
+                int pos = holder.getAdapterPosition() + 1;
+                for (int x = ((pos * 4) - 4); x < (pos * 4); x++) {
+                    //Log.d("x: ", String.valueOf(x) + "pos it: " + (i - 1));
+                    Question q = listOfQuestion.get(x);
+                    if (x == (i - 1)){
+                        q.setSelectOption(true);
+                        //Log.d("true: ",String.valueOf(x));
+                    }else {
+                        q.setSelectOption(false);
+                    }
                 }
-
             }
         });
 
@@ -72,13 +74,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 RadioButton radioButton = new RadioButton(mContext);
                 radioButton.setId(q.getId());
                 radioButton.setText(q.getName());
+                radioButton.setTextColor(ContextCompat.getColor(mContext,android.R.color.black));
                 mContext.setTheme(R.style.AppTheme);
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                    radioButton.setTextColor(mContext.getResources().getColor(android.R.color.black));
-                } else {
-                    radioButton.setTextColor(mContext.getResources().getColor(android.R.color.black, null));
-                }
-                if (q.getSelectOption() != 0) {
+
+                if (q.getSelectOption()) {
                     radioButton.setChecked(true);
                 }
                 LinearLayout.LayoutParams layoutParams = new RadioGroup.LayoutParams(
@@ -100,6 +99,25 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return listOfQuestion == null ? 0 : (listOfQuestion.size() / 4);
     }
 
+    public Question getItem(int position) {
+        return listOfQuestion.get(position);
+    }
+
+    public List<Integer> checkSelectedAllQuestion(){
+        List<Integer> list = new ArrayList<>();
+        for(int i=0;i<getItemCount();i++){
+            boolean flag = false;
+            for (int x = (((i+1) * 4) - 4); x < ((i+1) * 4); x++) {
+                if(getItem(x).getSelectOption()){
+                    flag = true;
+                }
+            }
+            if (!flag){
+                list.add((i+1));
+            }
+        }
+        return list;
+    }
 
     private static class QuestionViewHolderItem extends RecyclerView.ViewHolder {
 

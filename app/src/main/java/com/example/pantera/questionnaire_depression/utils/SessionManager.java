@@ -20,13 +20,13 @@ public class SessionManager {
     private Context mContext;
     private static final String PREF_NAME = "QuestionnairePref";
     private static final String IS_LOGIN = "IsLoggedIn";
-    public static final String KEY_NAME = "name";
-    public static final String KEY_SURNAME = "surname";
-    public static final String KEY_ID = "id";
-    public static final String KEY_COOKIE = "cookie";
-    public static final String KEY_USER_USERNAME = "user.username";
-    public static final String KEY_USER_ENABLED = "user.enabled";
-    public static final String KEY_USER_ID = "user.id";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_SURNAME = "surname";
+    private static final String KEY_ID = "id";
+    private static final String KEY_COOKIE = "cookie";
+    private static final String KEY_USER_USERNAME = "user.username";
+    private static final String KEY_USER_ENABLED = "user.enabled";
+    private static final String KEY_USER_ID = "user.id";
 
     // Constructor
     public SessionManager(Context mContext) {
