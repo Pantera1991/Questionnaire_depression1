@@ -5,8 +5,10 @@ import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
 
+import java.util.Date;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -30,9 +32,17 @@ public interface RestApi {
     @GET("/rest/questionsservice/getallquestionsbytype/{type}")
     Call<List<Question>> questions(@Path("type") String type);
 
-    @GET("rest/answerservice/getanswersbypatient/{id}")
+    @GET("/rest/answerservice/getanswersbypatient/{id}")
     Call<List<Answer>> getAnswers(@Path("id") int id);
 
     @GET("/rest/userservice/getdoctorbyid/{id}")
     Call<Doctor> getInformationAboutDoctor(@Path("id") int id);
+
+    @GET("/rest/answerservice/getdatelastsendquestionnaire/{patientId}")
+    Call<Date> getDateLastSendAnswer(@Path("patientId") int patientId);
+    @Headers({
+            "Content-Type: application/json"
+    })
+    @GET("/w/api.php?format=json&action=query&prop=extracts|info&inprop=url&exintro=&explaintext=&titles=Zaburzenia_depresyjne")
+    Call<ResponseBody> getWikiDefinition();
 }

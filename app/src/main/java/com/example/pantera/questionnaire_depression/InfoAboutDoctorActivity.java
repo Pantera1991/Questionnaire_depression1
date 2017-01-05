@@ -1,20 +1,16 @@
-package com.example.pantera.questionnaire_depression.fragment;
+package com.example.pantera.questionnaire_depression;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.example.pantera.questionnaire_depression.MainActivity;
-import com.example.pantera.questionnaire_depression.R;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
@@ -24,27 +20,25 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-/**
- * Created by Pantera on 2016-12-27.
- */
+public class InfoAboutDoctorActivity extends AppCompatActivity {
+    private Toolbar toolbar;
+    private TextView email;
+    private TextView phone;
+    private CollapsingToolbarLayout collapsingToolbarLayout;
 
-public class InfoAboutDrFragment extends Fragment {
 
-
-
-    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_info_dr, container, false);
-        Context mContext = rootView.getContext();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_info_about_doctor);
+        toolbar = (Toolbar) findViewById(R.id.toolbarInfo);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayoutInfo);
+        email = (TextView) findViewById(R.id.tvNumber2);
+        phone = (TextView) findViewById(R.id.tvNumber1);
 
-        //View mInformationView = rootView.findViewById(R.id.informationView);
-        //mProgressView = rootView.findViewById(R.id.information_progress);
-
-        final TextView email = (TextView) rootView.findViewById(R.id.tvNumber2);
-        final TextView phone = (TextView) rootView.findViewById(R.id.tvNumber1);
-        final MainActivity mainActivity = ((MainActivity) getActivity());
-        ImageButton imageButton = (ImageButton) rootView.findViewById(R.id.smsButton1);
+        ImageButton imageButton = (ImageButton) findViewById(R.id.smsButton1);
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -55,10 +49,12 @@ public class InfoAboutDrFragment extends Fragment {
                 startActivity(smsIntent);
             }
         });
+        initData();
+    }
 
-
-        RestClient restClient = new RestClient(rootView.getContext());
-        SessionManager sessionManager = new SessionManager(mContext);
+    private void initData(){
+        RestClient restClient = new RestClient(InfoAboutDoctorActivity.this);
+        SessionManager sessionManager = new SessionManager(InfoAboutDoctorActivity.this);
         int patientId = sessionManager.getUserDetails().getId();
 
         Call<Doctor> call = restClient.get().getInformationAboutDoctor(patientId);
@@ -71,7 +67,7 @@ public class InfoAboutDrFragment extends Fragment {
                 String phoneCode = "+48 "+doctor.getPhone();
                 phone.setText(phoneCode);
                 email.setText(doctor.getUser().getUsername());
-                mainActivity.setCollapsingToolbarLayoutTitle("dr. "+doctor.getName()+" "+doctor.getSurname());
+                collapsingToolbarLayout.setTitle("dr. "+doctor.getName()+" "+doctor.getSurname());
                 //showProgress(false);
             }
 
@@ -80,14 +76,9 @@ public class InfoAboutDrFragment extends Fragment {
                 Log.d("callback",call.request().toString());
                 Log.d("informationError",t.getMessage());
                 //showProgress(false);
-                ServerConnectionLost.returnToLoginActivity(getActivity());
+                ServerConnectionLost.returnToLoginActivity(InfoAboutDoctorActivity.this);
 
             }
         });
-
-        return rootView;
     }
-
 }
-
-

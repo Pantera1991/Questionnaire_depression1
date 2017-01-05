@@ -5,11 +5,11 @@
         <item
             android:id="@+id/nav_ques_fill"
             android:icon="@drawable/ic_assignment_black_24dp"
-            android:title="Ankiety do  wysłania" />
+            android:title="Ankiety" />
         <item
             android:id="@+id/nav_ques_to_send"
-            android:icon="@drawable/ic_assignment_turned_in_black_24dp"
-            android:title="Przesłane ankiety" />
+            android:icon="@drawable/ic_info_outline_black_24dp"
+            android:title="Informacje" />
 
         <item
             android:id="@+id/nav_info_dr"

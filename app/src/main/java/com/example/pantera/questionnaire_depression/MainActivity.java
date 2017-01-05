@@ -2,9 +2,7 @@ package com.example.pantera.questionnaire_depression;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.CoordinatorLayout;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
@@ -18,9 +16,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.pantera.questionnaire_depression.fragment.InfoAboutDrFragment;
-import com.example.pantera.questionnaire_depression.fragment.QuestionnaireToFillFragment;
-import com.example.pantera.questionnaire_depression.fragment.SentQuestionnaireFragment;
+import com.example.pantera.questionnaire_depression.fragment.InformationFragment;
+import com.example.pantera.questionnaire_depression.fragment.QuestionnaireFragment;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
@@ -31,25 +28,22 @@ public class MainActivity extends AppCompatActivity
     private TextView mHeaderUsername;
     private SessionManager sessionManager;
     private Toolbar toolbar;
-    private AppBarLayout appBarLayout;
-    private CollapsingToolbarLayout collapsingToolbarLayout;
-    private CoordinatorLayout coordinatorLayout;
+    private FloatingActionButton fab;
+    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        appBarLayout = (AppBarLayout) findViewById(R.id.appBar);
-        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.root_coordinatorLayout);
-        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayout);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle("Ankiety do wypełnienia");
         setSupportActionBar(toolbar);
 
         //init session
         sessionManager = new SessionManager(getApplicationContext());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -64,7 +58,7 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         NavigationView navigationViewBottom = (NavigationView) navigationView.findViewById(R.id.navigation_drawer_bottom);
@@ -76,26 +70,21 @@ public class MainActivity extends AppCompatActivity
         mHeaderUsername = (TextView) navHeaderView.findViewById(R.id.textView__header_username);
         setUserData();
 
+
         //init first select
-        appBarLayout.setExpanded(false,false);
         navigationView.setCheckedItem(R.id.nav_ques_fill);
         navigationView.getMenu().performIdentifierAction(R.id.nav_ques_fill, 0);
     }
 
-    public void setCollapsingToolbarLayoutTitle(String title){
-        collapsingToolbarLayout.setTitle(title);
-        collapsingToolbarLayout.setTitleEnabled(true);
-        appBarLayout.setExpanded(true, true);
-    }
 
-    public void expandToolbar(){
-        CoordinatorLayout.LayoutParams params = (CoordinatorLayout.LayoutParams) appBarLayout.getLayoutParams();
-        AppBarLayout.Behavior behavior = (AppBarLayout.Behavior) params.getBehavior();
-        if(behavior!=null) {
-            behavior.setTopAndBottomOffset(0);
-            behavior.onNestedPreScroll(coordinatorLayout, appBarLayout, null, 0, 1, new int[2]);
+    public void setVisibilityFab(int visibility) {
+        if (visibility == View.GONE || visibility == View.INVISIBLE) {
+            fab.hide();
+        } else {
+            fab.show();
         }
     }
+
 
     private void setUserData() {
         Patient patient = sessionManager.getUserDetails();
@@ -111,43 +100,43 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            if (getFragmentManager().getBackStackEntryCount() == 0) {
+                finish();
+            }
+            //super.onBackPressed();
         }
+
     }
 
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         FragmentManager manager = getSupportFragmentManager();
         switch (id) {
             case R.id.nav_ques_fill:
-                expandToolbar();
-                appBarLayout.setExpanded(false, false);
-                collapsingToolbarLayout.setTitle("Ankiety do wypełnienia");
-                toolbar.setTitle("Ankiety do wypełnienia");
 
-                QuestionnaireToFillFragment toFillFragment = new QuestionnaireToFillFragment();
+                toolbar.setTitle("Ankiety");
+                setVisibilityFab(View.VISIBLE);
+                QuestionnaireFragment toFillFragment = new QuestionnaireFragment();
                 manager.beginTransaction().replace(R.id.content_main, toFillFragment)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                         .addToBackStack(null)
                         .commit();
                 break;
             case R.id.nav_ques_to_send:
-                expandToolbar();
-                appBarLayout.setExpanded(false, false);
-                collapsingToolbarLayout.setTitle("Wysłane ankiety");
-                toolbar.setTitle("Wysłane ankiety");
-
-                SentQuestionnaireFragment toSentFragment = new SentQuestionnaireFragment();
+                toolbar.setTitle("Informacje");
+                setVisibilityFab(View.GONE);
+                InformationFragment toSentFragment = new InformationFragment();
                 manager.beginTransaction().replace(R.id.content_main, toSentFragment).commit();
                 break;
             case R.id.nav_info_dr:
-
-                InfoAboutDrFragment drFragment = new InfoAboutDrFragment();
-                manager.beginTransaction().replace(R.id.content_main, drFragment).commit();
+                Intent intent = new Intent(MainActivity.this, InfoAboutDoctorActivity.class);
+                startActivity(intent);
+                item.setChecked(false);
+                item.setCheckable(false);
                 break;
             case R.id.nav_logout:
                 sessionManager.logoutUser();

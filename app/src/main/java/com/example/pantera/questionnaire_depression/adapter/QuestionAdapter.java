@@ -41,7 +41,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.rv_question_irem, parent, false);
+                .inflate(R.layout.rv_question_item, parent, false);
         return new QuestionViewHolderItem(itemView);
     }
 
@@ -74,8 +74,8 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 RadioButton radioButton = new RadioButton(mContext);
                 radioButton.setId(q.getId());
                 radioButton.setText(q.getName());
-                radioButton.setTextColor(ContextCompat.getColor(mContext,android.R.color.black));
-                mContext.setTheme(R.style.AppTheme);
+                radioButton.setTextColor(ContextCompat.getColor(mContext,R.color.text));
+                mContext.setTheme(R.style.MyRadioButton);
 
                 if (q.getSelectOption()) {
                     radioButton.setChecked(true);

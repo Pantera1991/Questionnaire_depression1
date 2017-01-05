@@ -45,4 +45,7 @@
     </style>
 
 
+    <style name="WikiBtn" parent="Theme.AppCompat.Light">
+        <item name="colorButtonNormal">#ffffff</item>
+    </style>
 </resources>

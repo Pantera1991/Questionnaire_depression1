@@ -45,7 +45,6 @@ public class QuestionActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.question_progress);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.question_recycler_view);
-        mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(QuestionActivity.this));
         if (mRecyclerView != null) {
             mRecyclerView.setHasFixedSize(true);
         }

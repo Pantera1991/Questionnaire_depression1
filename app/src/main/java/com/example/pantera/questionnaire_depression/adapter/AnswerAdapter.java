@@ -48,7 +48,7 @@ public class AnswerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         myHolder.colorPoints.setText(strPoints);
         myHolder.colorPoints.setBackground(generateShape(Diagnosis.getColor(answer.getSumOfPoints())));
         myHolder.diagnosisDescription.setText(Diagnosis.getDiagnose(answer.getSumOfPoints()));
-        SimpleDateFormat dt = new SimpleDateFormat("dd-MM-yyyy", Locale.GERMANY);
+        SimpleDateFormat dt = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
         myHolder.date.setText(dt.format(answer.getDate()));
     }
 
