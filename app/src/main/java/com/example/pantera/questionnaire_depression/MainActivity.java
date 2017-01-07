@@ -1,10 +1,13 @@
 package com.example.pantera.questionnaire_depression;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -12,6 +15,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -21,15 +25,19 @@ import com.example.pantera.questionnaire_depression.fragment.QuestionnaireFragme
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final int SEND_QUESTIONNAIRE_REQUEST = 1;
     private TextView mHeaderName;
     private TextView mHeaderUsername;
     private SessionManager sessionManager;
     private Toolbar toolbar;
     private FloatingActionButton fab;
-    private NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +48,7 @@ public class MainActivity extends AppCompatActivity
         toolbar.setTitle("Ankiety do wypełnienia");
         setSupportActionBar(toolbar);
 
-        //init session
+        //initInfoCard session
         sessionManager = new SessionManager(getApplicationContext());
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -48,7 +56,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, QuestionActivity.class);
-                startActivity(i);
+                startActivityForResult(i, SEND_QUESTIONNAIRE_REQUEST);
             }
         });
 
@@ -58,7 +66,7 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         NavigationView navigationViewBottom = (NavigationView) navigationView.findViewById(R.id.navigation_drawer_bottom);
@@ -71,9 +79,10 @@ public class MainActivity extends AppCompatActivity
         setUserData();
 
 
-        //init first select
+        //initInfoCard first select
         navigationView.setCheckedItem(R.id.nav_ques_fill);
         navigationView.getMenu().performIdentifierAction(R.id.nav_ques_fill, 0);
+
     }
 
 
@@ -94,6 +103,17 @@ public class MainActivity extends AppCompatActivity
         mHeaderUsername.setText(username);
     }
 
+    private void buildNotification() {
+        DateTime dateTime = new DateTime().withHourOfDay(21).withMinuteOfHour(29).withSecondOfMinute(0);
+        DateTimeFormatter dtf = DateTimeFormat.forPattern("dd-MM-Y HH:mm:ss");
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, SEND_QUESTIONNAIRE_REQUEST, intent, 0);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, dateTime.getMillis(), pendingIntent);
+        Log.d("czas: ",dtf.print(dateTime));
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -103,7 +123,6 @@ public class MainActivity extends AppCompatActivity
             if (getFragmentManager().getBackStackEntryCount() == 0) {
                 finish();
             }
-            //super.onBackPressed();
         }
 
     }
@@ -119,9 +138,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_ques_fill:
 
                 toolbar.setTitle("Ankiety");
-                setVisibilityFab(View.VISIBLE);
                 QuestionnaireFragment toFillFragment = new QuestionnaireFragment();
-                manager.beginTransaction().replace(R.id.content_main, toFillFragment)
+
+                manager.beginTransaction()
+                        .add(toFillFragment,"Ankiety")
+                        .replace(R.id.content_main, toFillFragment)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                         .addToBackStack(null)
                         .commit();
@@ -130,7 +151,11 @@ public class MainActivity extends AppCompatActivity
                 toolbar.setTitle("Informacje");
                 setVisibilityFab(View.GONE);
                 InformationFragment toSentFragment = new InformationFragment();
-                manager.beginTransaction().replace(R.id.content_main, toSentFragment).commit();
+                manager.beginTransaction()
+                        .add(toSentFragment,"Informacje")
+                        .replace(R.id.content_main, toSentFragment)
+                        .addToBackStack(null)
+                        .commit();
                 break;
             case R.id.nav_info_dr:
                 Intent intent = new Intent(MainActivity.this, InfoAboutDoctorActivity.class);
@@ -146,5 +171,17 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            if (requestCode == SEND_QUESTIONNAIRE_REQUEST) {
+                buildNotification();
+                FragmentManager manager = getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentByTag("Ankiety");
+                fragment.onActivityResult(requestCode, resultCode, data);
+            }
+        }
     }
 }

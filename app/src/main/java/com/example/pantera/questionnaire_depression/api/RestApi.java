@@ -5,11 +5,14 @@ import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
 
+import org.json.JSONObject;
+
 import java.util.Date;
 import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -45,4 +48,10 @@ public interface RestApi {
     })
     @GET("/w/api.php?format=json&action=query&prop=extracts|info&inprop=url&exintro=&explaintext=&titles=Zaburzenia_depresyjne")
     Call<ResponseBody> getWikiDefinition();
+
+    @Headers({
+            "Content-Type: application/json"
+    })
+    @POST("/rest/answerservice/sendanswer")
+    Call<ResponseBody> sendAnswer(@Body JSONObject answer);
 }

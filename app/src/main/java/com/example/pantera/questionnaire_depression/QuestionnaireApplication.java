@@ -33,7 +33,7 @@ public class QuestionnaireApplication extends Application {
 
         // Initialize Stetho with the Initializer
         Stetho.initialize(initializer);
-        // init joda time
+        // initInfoCard joda time
         JodaTimeAndroid.init(this);
     }
 }

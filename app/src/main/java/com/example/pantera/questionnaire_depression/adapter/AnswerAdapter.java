@@ -32,6 +32,11 @@ public class AnswerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         this.listOfAnswer = listOfAnswer;
     }
 
+    public void addItem(Answer q){
+        listOfAnswer.add(0, q);
+        notifyItemInserted(0);
+    }
+
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())

@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -55,6 +56,7 @@ public class QuestionnaireFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RestClient restClient;
+    private boolean disableFab = true;
 
     @Nullable
     @Override
@@ -72,30 +74,31 @@ public class QuestionnaireFragment extends Fragment {
         restClient = new RestClient(rootView.getContext());
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.sent_ques_recycler_view);
         //mRecyclerView.addItemDecoration(new SimpleDividerItemDecoration(rootView.getContext()));
-        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            boolean isVisible = true;
-            int scrollDist = 0;
-            static final float MINIMUM = 25;
-            @Override
-            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                super.onScrolled(recyclerView, dx, dy);
-                if (isVisible && scrollDist > MINIMUM) {
-                    //hide();
-                    mainActivity.setVisibilityFab(View.GONE);
-                    scrollDist = 0;
-                    isVisible = false;
+        if(!disableFab){
+            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                boolean isVisible = true;
+                int scrollDist = 0;
+                static final float MINIMUM = 25;
+                @Override
+                public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (isVisible && scrollDist > MINIMUM) {
+                        mainActivity.setVisibilityFab(View.GONE);
+                        scrollDist = 0;
+                        isVisible = false;
+                    }
+                    else if (!isVisible && scrollDist < -MINIMUM) {
+                        mainActivity.setVisibilityFab(View.VISIBLE);
+                        scrollDist = 0;
+                        isVisible = true;
+                    }
+                    if ((isVisible && dy > 0) || (!isVisible && dy < 0)) {
+                        scrollDist += dy;
+                    }
                 }
-                else if (!isVisible && scrollDist < -MINIMUM) {
-                    //show();
-                    mainActivity.setVisibilityFab(View.VISIBLE);
-                    scrollDist = 0;
-                    isVisible = true;
-                }
-                if ((isVisible && dy > 0) || (!isVisible && dy < 0)) {
-                    scrollDist += dy;
-                }
-            }
-        });
+            });
+        }
+
         //ViewCompat.setNestedScrollingEnabled(mRecyclerView, false);
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -122,7 +125,7 @@ public class QuestionnaireFragment extends Fragment {
                 Log.d("status", String.valueOf(response.code()));
                 mAdapter = new AnswerAdapter(response.body(), mContext);
                 mRecyclerView.setAdapter(mAdapter);
-                init();
+                initInfoCard();
                 showProgress(false);
             }
 
@@ -137,7 +140,7 @@ public class QuestionnaireFragment extends Fragment {
         });
     }
 
-    public void init() {
+    public void initInfoCard() {
 
         final SessionManager sessionManager = new SessionManager(mContext);
         RestClient restClient = new RestClient(mContext);
@@ -166,11 +169,13 @@ public class QuestionnaireFragment extends Fragment {
         DateTime dateTime = new DateTime(date);
         dateTime = dateTime.plus(Months.ONE);
         if (nowTime.isAfter(dateTime.getMillis())) {
+            disableFab = false;
             cardQuestionnaire.setVisibility(View.VISIBLE);
             cardInfo.setVisibility(View.GONE);
             mainActivity.setVisibilityFab(View.VISIBLE);
         } else {
             DateTimeFormatter dtf = DateTimeFormat.forPattern("dd-MM-Y");
+            disableFab = true;
             mTvDate.setText(dtf.print(dateTime));
             mainActivity.setVisibilityFab(View.GONE);
             cardQuestionnaire.setVisibility(View.GONE);
@@ -212,4 +217,17 @@ public class QuestionnaireFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == MainActivity.SEND_QUESTIONNAIRE_REQUEST){
+            initInfoCard();
+            AnswerAdapter questionAdapter = (AnswerAdapter) mAdapter;
+            Answer answer = new Answer();
+            answer.setId(data.getIntExtra("idAnswer",0));
+            answer.setDate(new Date(data.getStringExtra("date")));
+            answer.setSumOfPoints(data.getIntExtra("points", 0));
+            questionAdapter.addItem(answer);
+            mRecyclerView.smoothScrollToPosition(0);
+        }
+    }
 }

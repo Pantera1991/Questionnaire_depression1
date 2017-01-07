@@ -31,12 +31,15 @@
             android:name=".QuestionActivity"
             android:label="@string/title_activity_question"
             android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".InfoAboutDoctorActivity"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <activity android:name=".InfoAboutDoctorActivity"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".MainActivity"/>
-
-
+        <receiver
+            android:name=".AlarmReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>

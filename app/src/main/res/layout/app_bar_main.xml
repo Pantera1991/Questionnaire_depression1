@@ -23,14 +23,14 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <android.support.v4.widget.NestedScrollView
-        android:id="@+id/nestedScroll_Main"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+    <!--<android.support.v4.widget.NestedScrollView-->
+        <!--android:id="@+id/nestedScroll_Main"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
 
         <include layout="@layout/content_main" />
-    </android.support.v4.widget.NestedScrollView>
+    <!--</android.support.v4.widget.NestedScrollView>-->
 
 
         <android.support.design.widget.FloatingActionButton
@@ -40,7 +40,8 @@
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
             android:src="@drawable/ic_assignment_white_24dp"
-            app:behavior_autoHide="true"/>
+            app:behavior_autoHide="true"
+            android:visibility="gone"/>
 
 
 </android.support.design.widget.CoordinatorLayout>

@@ -3,9 +3,15 @@ package com.example.pantera.questionnaire_depression;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,11 +24,20 @@ import android.view.View;
 import com.example.pantera.questionnaire_depression.adapter.QuestionAdapter;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Question;
+import com.example.pantera.questionnaire_depression.utils.Diagnosis;
 import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
+import com.example.pantera.questionnaire_depression.utils.SessionManager;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -40,7 +55,7 @@ public class QuestionActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
 
-        restClient = new RestClient(getApplicationContext());
+        restClient = new RestClient(this);
 
         mProgressView = findViewById(R.id.question_progress);
 
@@ -54,7 +69,6 @@ public class QuestionActivity extends AppCompatActivity {
         registerForContextMenu(mRecyclerView);
 
         loadData();
-        //new LoadData().execute();
     }
 
     private void loadData() {
@@ -105,19 +119,21 @@ public class QuestionActivity extends AppCompatActivity {
                 QuestionAdapter adapter = (QuestionAdapter) mAdapter;
                 List<Integer> list = adapter.checkSelectedAllQuestion();
                 if (list.size() > 0) {
-                    String msg = "Nie zaznaczyłeś/aś wszystkich pytań \n"+list.toString().replaceAll("[\\[*\\]]", "");
+                    String msg = "Nie zaznaczyłeś/aś wszystkich pytań \n" + list.toString().replaceAll("[\\[*\\]]", "");
                     String title = "Nie można wysłać ankiety !";
-                    showDialog(msg,title);
+                    showDialog(msg, title);
                 } else {
+                    List<Integer> listAnswers = new ArrayList<>();
                     int size = adapter.getItemCount() * 4;
                     float sum = 0;
                     for (int i = 0; i < size; i++) {
                         Question q = adapter.getItem(i);
                         if (q.getSelectOption()) {
                             sum += q.getPoints();
+                            listAnswers.add(q.getId());
                         }
                     }
-
+                    showSendDialog(sum, listAnswers);
                     Log.d("sum", String.valueOf(sum));
                 }
 
@@ -160,7 +176,7 @@ public class QuestionActivity extends AppCompatActivity {
         }
     }
 
-    private void showDialog(final String text,String title) {
+    private void showDialog(final String text, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(QuestionActivity.this);
         builder.setMessage(text)
                 .setTitle(title)
@@ -170,45 +186,94 @@ public class QuestionActivity extends AppCompatActivity {
         alert.show();
     }
 
-    public class LoadData extends AsyncTask<Void, Void , Response<List<Question>>>{
+    private void showSendDialog(final float points, final List<Integer> listAnswers) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Twój wynik: " + (int) points + " punktów" + "\nDiagnoza: " + Diagnosis.getDiagnose((int) points))
+                .setCancelable(false)
+                .setPositiveButton("Wyślij", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        new SendTask(QuestionActivity.this, points, listAnswers).execute();
+                    }
+                })
+                .setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
+
+    class SendTask extends AsyncTask<Object, Void, Boolean> {
+        Context context;
+        ProgressDialog mDialog;
+        List<Integer> listAnswers;
+        float points;
+        private int answerId;
+
+        SendTask(Context context, float points, List<Integer> listAnswers) {
+            this.context = context;
+            this.listAnswers = listAnswers;
+            this.points = points;
+        }
 
         @Override
         protected void onPreExecute() {
-            showProgress(true);
+            super.onPreExecute();
+
+            mDialog = new ProgressDialog(QuestionActivity.this);
+            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mDialog.setMessage("Wysyłanie...");
+            mDialog.show();
         }
 
         @Override
-        protected Response<List<Question>> doInBackground(Void... voids) {
-
-            Call<List<Question>> call = restClient.get().questions("becka");
-            Response<List<Question>> response = null;
+        protected Boolean doInBackground(Object... params) {
             try {
-                response = call.execute();
+                SessionManager sessionManager = new SessionManager(QuestionActivity.this);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("patientID", String.valueOf(sessionManager.getUserDetails().getId()));
+                JSONArray answers = new JSONArray();
+                for (int i = 0; i < listAnswers.size(); i++) {
+                    answers.put(i, listAnswers.get(i));
+                }
+                jsonObject.put("answers", answers);
+                Call<ResponseBody> call = restClient.get().sendAnswer(jsonObject);
+                Response<ResponseBody> exec = call.execute();
+                answerId = Integer.parseInt(exec.body().string());
+                return exec.code() == 200;
             } catch (IOException e) {
                 e.printStackTrace();
+                return false;
+            } catch (JSONException e) {
+                e.printStackTrace();
+                return false;
             }
-            return response;
         }
 
         @Override
-        protected void onPostExecute(Response<List<Question>> response) {
-            if(response != null){
-                switch (response.code()) {
-                    case 200:
-                        List<Question> questionList = response.body();
-                        mAdapter = new QuestionAdapter(questionList, QuestionActivity.this);
-                        mRecyclerView.setAdapter(mAdapter);
-                        showProgress(false);
-                        break;
-                    case 404:
-                        showProgress(false);
-                        ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
-                        break;
-                }
-            }else{
-                showProgress(false);
-                ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+
+            if (result) {
+
+                Intent data = getIntent();
+                data.putExtra("idAnswer", answerId);
+                data.putExtra("points", (int) points);
+                data.putExtra("date", new Date().toString());
+                setResult(Activity.RESULT_OK, data);
+                finish();
+            } else {
+                Snackbar.make(mRecyclerView, getResources().getString(R.string.offline_serv), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
+
+
+            mDialog.dismiss();
         }
     }
 }
+
+
