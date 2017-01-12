@@ -27,6 +27,7 @@ public class SessionManager {
     private static final String KEY_USER_USERNAME = "user.username";
     private static final String KEY_USER_ENABLED = "user.enabled";
     private static final String KEY_USER_ID = "user.id";
+    private static final String KEY_STARTER_TEST = "starttest";
 
     // Constructor
     public SessionManager(Context mContext) {
@@ -47,6 +48,7 @@ public class SessionManager {
         editor.putInt(KEY_USER_ID, patient.getUser().getId());
         editor.putString(KEY_USER_USERNAME, patient.getUser().getUsername());
         editor.putBoolean(KEY_USER_ENABLED, patient.getUser().isEnabled());
+        editor.putBoolean(KEY_STARTER_TEST, patient.isStartQuestionnaire());
 
         // commit changes
         editor.commit();
@@ -63,7 +65,7 @@ public class SessionManager {
 
     }
 
-    public String getCookieValue(){
+    public String getCookieValue() {
         return pref.getString(KEY_COOKIE, null);
     }
 
@@ -73,6 +75,7 @@ public class SessionManager {
         patient.setId(pref.getInt(KEY_ID, 0));
         patient.setName(pref.getString(KEY_NAME, null));
         patient.setSurname(pref.getString(KEY_SURNAME, null));
+        patient.setStartQuestionnaire(pref.getBoolean(KEY_STARTER_TEST, false));
         user.setId(pref.getInt(KEY_USER_ID, 0));
         user.setUsername(pref.getString(KEY_USER_USERNAME, null));
         user.setEnabled(pref.getBoolean(KEY_USER_ENABLED, false));

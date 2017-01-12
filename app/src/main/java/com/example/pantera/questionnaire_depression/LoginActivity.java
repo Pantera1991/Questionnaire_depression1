@@ -41,8 +41,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
     private UserLoginTask mAuthTask = null;
-
-    // UI references.
     private EditText mLoginView;
     private EditText mPasswordView;
     private View mProgressView;
@@ -260,12 +258,22 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         if (patient != null) {
-                            sessionManager.createLoginSession(patient, cookieValue);
 
-                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(intent);
-                            finish();
+                            if(patient.isStartQuestionnaire()){
+                                sessionManager.createLoginSession(patient, cookieValue);
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                                finish();
+                            }else{
+                                Intent intent = new Intent(getApplicationContext(), StarterActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                intent.putExtra("patient",patient);
+                                intent.putExtra("cookieValue",cookieValue);
+                                startActivity(intent);
+                                finish();
+                            }
+
                         } else {
                             Snackbar.make(mLoginFormView, getResources().getString(R.string.error_load_user_data), Snackbar.LENGTH_LONG)
                                     .setAction("Action", null).show();

@@ -39,7 +39,12 @@
         <receiver
             android:name=".AlarmReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true" />
+
+        <activity
+            android:name=".StarterActivity"
+            android:label="@string/title_activity_starter"
+            android:theme="@style/AppTheme.Starter"/>
     </application>
 
 </manifest>

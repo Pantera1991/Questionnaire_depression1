@@ -15,6 +15,14 @@
             android:id="@+id/nav_info_dr"
             android:icon="@drawable/ic_person_outline_black_24dp"
             android:title="Doktor prowadzący"/>
+
+
+    </group>
+    <group
+        android:id="@+id/setting_group" android:checkableBehavior="none">
+        <item android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings_black_24dp"
+            android:title="Ustawienia"/>
     </group>
 
 </menu>

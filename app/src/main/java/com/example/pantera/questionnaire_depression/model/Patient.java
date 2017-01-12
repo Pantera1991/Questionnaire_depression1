@@ -1,14 +1,26 @@
 package com.example.pantera.questionnaire_depression.model;
 
+import java.io.Serializable;
+
 /**
  * Created by Pantera on 2016-12-22.
  */
 
-public class Patient {
+public class Patient implements Serializable{
     private int id;
     private String name;
     private String surname;
     private User user;
+    private boolean startQuestionnaire;
+
+    public boolean isStartQuestionnaire() {
+        return startQuestionnaire;
+    }
+
+    public Patient setStartQuestionnaire(boolean startQuestionnaire) {
+        this.startQuestionnaire = startQuestionnaire;
+        return this;
+    }
 
     public int getId() {
         return id;

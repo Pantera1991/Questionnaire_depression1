@@ -25,7 +25,15 @@
     <string name="action_settings">Settings</string>
     <string name="logOutText">Wyloguj</string>
     <string name="title_activity_question">Ankieta</string>
-    <string name="login">Logowanie...</string>
+    <string name="login">Logowanie</string>
     <string name="loading_data">Wczytywanie danych....</string>
     <string name="diagnosis">DIAGNOZA</string>
+    <string name="title_activity_settings">Ustawienia</string>
+
+    <!-- Strings related to Settings -->
+    <string name="pref_title_new_message_notifications">Powiadomienie o nowym badaniu</string>
+    <string name="title_activity_starter">StarterActivity</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+
 </resources>

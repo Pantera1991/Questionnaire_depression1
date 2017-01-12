@@ -166,6 +166,12 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_logout:
                 sessionManager.logoutUser();
                 break;
+            case R.id.nav_settings:
+//                Intent settings = new Intent(MainActivity.this, SettingsActivity.class);
+//                startActivity(settings);
+//                item.setChecked(false);
+//                item.setCheckable(false);
+                break;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

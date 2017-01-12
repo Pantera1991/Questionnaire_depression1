@@ -1,0 +1,21 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceCategory
+    android:title="Powiadomienia">
+    <!-- A 'parent' preference, which enables/disables child preferences (below)
+         when checked/unchecked. -->
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="notifications_new_message"
+        android:title="@string/pref_title_new_message_notifications"
+        android:summary="Włącz powiadomienie o możliwości wysłania badania"/>
+
+
+    <com.example.pantera.questionnaire_depression.settings.TimePreference
+        android:key="pref_key_time"
+        android:title="Godzina powiadomienia"
+        android:summary="15:00"
+        android:defaultValue="15:00"
+
+        />
+</PreferenceCategory>
+</PreferenceScreen>

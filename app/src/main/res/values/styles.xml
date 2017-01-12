@@ -15,6 +15,8 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+
+
     <style name="TextAppearance.App.TextInputLayout" parent="@android:style/TextAppearance">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textSize">20sp</item>
@@ -36,7 +38,14 @@
         <item name="colorButtonNormal">@color/colorPrimaryDark</item>
     </style>
 
+    <style name="AppTheme.Starter" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary1</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark1</item>
+        <item name="colorAccent">@android:color/white</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="MyRadioButton" parent="Theme.AppCompat.Light">
@@ -44,6 +53,10 @@
         <item name="colorControlActivated">@color/colorAccent</item>
     </style>
 
+    <style name="MyRadioButton2" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@android:color/white</item>
+        <item name="colorControlActivated">@color/colorPrimaryDark1</item>
+    </style>
 
     <style name="WikiBtn" parent="Theme.AppCompat.Light">
         <item name="colorButtonNormal">#ffffff</item>
