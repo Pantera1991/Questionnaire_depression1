@@ -19,10 +19,11 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setContentTitle("Dostępne jest badanie")
                 .setContentText("Wypełnij miesęczny test i wyślij lekarzowi !")
                 .setAutoCancel(true)
-                .setOngoing(true);
+                .setOngoing(false);
+
 
         PendingIntent contentIntent = PendingIntent.getActivity(context, MainActivity.SEND_QUESTIONNAIRE_REQUEST,
-                new Intent(context, QuestionActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                new Intent(context, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
         mBuilder.setContentIntent(contentIntent);
 
         NotificationManager mNotifyMgr =

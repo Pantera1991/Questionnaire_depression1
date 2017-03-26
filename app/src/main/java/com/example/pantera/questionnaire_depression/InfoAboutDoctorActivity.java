@@ -1,5 +1,7 @@
 package com.example.pantera.questionnaire_depression;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,20 +23,25 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class InfoAboutDoctorActivity extends AppCompatActivity {
-    private Toolbar toolbar;
     private TextView email;
     private TextView phone;
     private CollapsingToolbarLayout collapsingToolbarLayout;
+    private View mProgressView;
+    private View mContentView;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_about_doctor);
-        toolbar = (Toolbar) findViewById(R.id.toolbarInfo);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarInfo);
+        toolbar.setTitle("");
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mProgressView = findViewById(R.id.doctor_info__progress);
+        mContentView = findViewById(R.id.doctor_info__content);
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayoutInfo);
+        collapsingToolbarLayout.setTitle("");
         email = (TextView) findViewById(R.id.tvNumber2);
         phone = (TextView) findViewById(R.id.tvNumber1);
 
@@ -53,12 +60,13 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
     }
 
     private void initData(){
+        showProgress(true);
         RestClient restClient = new RestClient(InfoAboutDoctorActivity.this);
         SessionManager sessionManager = new SessionManager(InfoAboutDoctorActivity.this);
         int patientId = sessionManager.getUserDetails().getId();
 
         Call<Doctor> call = restClient.get().getInformationAboutDoctor(patientId);
-        //showProgress(true);
+
         call.enqueue(new Callback<Doctor>() {
             @Override
             public void onResponse(Call<Doctor> call, Response<Doctor> response) {
@@ -68,16 +76,38 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
                 phone.setText(phoneCode);
                 email.setText(doctor.getUser().getUsername());
                 collapsingToolbarLayout.setTitle("dr. "+doctor.getName()+" "+doctor.getSurname());
-                //showProgress(false);
+                showProgress(false);
             }
 
             @Override
             public void onFailure(Call<Doctor> call, Throwable t) {
                 Log.d("callback",call.request().toString());
                 Log.d("informationError",t.getMessage());
-                //showProgress(false);
+                showProgress(false);
                 ServerConnectionLost.returnToLoginActivity(InfoAboutDoctorActivity.this);
 
+            }
+        });
+    }
+
+    private void showProgress(final boolean show) {
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        mContentView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mContentView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mContentView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
     }

@@ -3,7 +3,10 @@ package com.example.pantera.questionnaire_depression;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.StrictMode;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -22,10 +25,14 @@ import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.fragment.InformationFragment;
 import com.example.pantera.questionnaire_depression.fragment.QuestionnaireFragment;
+import com.example.pantera.questionnaire_depression.model.DateResponse;
 import com.example.pantera.questionnaire_depression.model.Patient;
+import com.example.pantera.questionnaire_depression.settings.SettingsActivity;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.joda.time.DateTime;
+import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -33,11 +40,13 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final int SEND_QUESTIONNAIRE_REQUEST = 1;
+    public static final int ALARM_REQUEST = 1240;
     private TextView mHeaderName;
     private TextView mHeaderUsername;
     private SessionManager sessionManager;
     private Toolbar toolbar;
     private FloatingActionButton fab;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +56,9 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Ankiety do wypełnienia");
         setSupportActionBar(toolbar);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         //initInfoCard session
         sessionManager = new SessionManager(getApplicationContext());
@@ -83,6 +95,19 @@ public class MainActivity extends AppCompatActivity
         navigationView.setCheckedItem(R.id.nav_ques_fill);
         navigationView.getMenu().performIdentifierAction(R.id.nav_ques_fill, 0);
 
+        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+        Log.d("MAIN", refreshedToken);
+
+        boolean alarmUp = (PendingIntent.getBroadcast(this, 0,
+                new Intent("com.example.pantera.questionnaire_depression"),
+                PendingIntent.FLAG_NO_CREATE) != null);
+        String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+        DateTime nowTime = new DateTime();
+        DateTime dateTimeCheck = DateResponse.stringToDateTime(dateNotify);
+        dateTimeCheck = dateTimeCheck.plus(Months.ONE);
+        if (!alarmUp && !nowTime.isAfter(dateTimeCheck.getMillis())) {
+            buildNotification(false);
+        }
     }
 
 
@@ -98,20 +123,38 @@ public class MainActivity extends AppCompatActivity
     private void setUserData() {
         Patient patient = sessionManager.getUserDetails();
         String name = patient.getName() + " " + patient.getSurname();
-        String username = "Nazwa użytkownika: " + patient.getUser().getUsername();
+        String username = patient.getUser().getUsername();
         mHeaderName.setText(name);
         mHeaderUsername.setText(username);
     }
 
-    private void buildNotification() {
-        DateTime dateTime = new DateTime().withHourOfDay(21).withMinuteOfHour(29).withSecondOfMinute(0);
-        DateTimeFormatter dtf = DateTimeFormat.forPattern("dd-MM-Y HH:mm:ss");
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, SEND_QUESTIONNAIRE_REQUEST, intent, 0);
+    private void buildNotification(boolean now) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean enableNotify = preferences.getBoolean("notifications_alarm", false);
 
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        alarmManager.set(AlarmManager.RTC_WAKEUP, dateTime.getMillis(), pendingIntent);
-        Log.d("czas: ",dtf.print(dateTime));
+        if (enableNotify) {
+            String timePref = preferences.getString("pref_key_time", null);
+            String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+
+            if (timePref != null && dateNotify != null) {
+                String[] timeSplit = timePref.split(":");
+                DateTime dateTime;
+                if(now){
+                    dateTime = new DateTime().withHourOfDay(Integer.parseInt(timeSplit[0])).withMinuteOfHour(Integer.parseInt(timeSplit[1])).withSecondOfMinute(0);
+                }else {
+                    dateTime = DateResponse.stringToDateTime(dateNotify).withHourOfDay(Integer.parseInt(timeSplit[0])).withMinuteOfHour(Integer.parseInt(timeSplit[1])).withSecondOfMinute(0).plusMonths(1);
+                }
+                DateTimeFormatter dtf = DateTimeFormat.forPattern("dd-MM-Y HH:mm:ss");
+                Intent intent = new Intent(this, AlarmReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, ALARM_REQUEST, intent, 0);
+                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                alarmManager.cancel(pendingIntent);
+                alarmManager.set(AlarmManager.RTC_WAKEUP, dateTime.getMillis(), pendingIntent);
+                Log.d("czas: ", dtf.print(dateTime));
+            }
+
+        }
+
     }
 
     @Override
@@ -128,6 +171,8 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+
+
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -136,12 +181,10 @@ public class MainActivity extends AppCompatActivity
         FragmentManager manager = getSupportFragmentManager();
         switch (id) {
             case R.id.nav_ques_fill:
-
                 toolbar.setTitle("Ankiety");
                 QuestionnaireFragment toFillFragment = new QuestionnaireFragment();
-
                 manager.beginTransaction()
-                        .add(toFillFragment,"Ankiety")
+                        .add(toFillFragment, "Ankiety")
                         .replace(R.id.content_main, toFillFragment)
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                         .addToBackStack(null)
@@ -152,7 +195,7 @@ public class MainActivity extends AppCompatActivity
                 setVisibilityFab(View.GONE);
                 InformationFragment toSentFragment = new InformationFragment();
                 manager.beginTransaction()
-                        .add(toSentFragment,"Informacje")
+                        .add(toSentFragment, "Informacje")
                         .replace(R.id.content_main, toSentFragment)
                         .addToBackStack(null)
                         .commit();
@@ -164,13 +207,21 @@ public class MainActivity extends AppCompatActivity
                 item.setCheckable(false);
                 break;
             case R.id.nav_logout:
+
+                Intent intentAlarm = new Intent(this, AlarmReceiver.class);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, ALARM_REQUEST, intentAlarm, 0);
+                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+                alarmManager.cancel(pendingIntent);
+
                 sessionManager.logoutUser();
                 break;
             case R.id.nav_settings:
-//                Intent settings = new Intent(MainActivity.this, SettingsActivity.class);
-//                startActivity(settings);
-//                item.setChecked(false);
-//                item.setCheckable(false);
+                String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+                Intent settings = new Intent(MainActivity.this, SettingsActivity.class);
+                settings.putExtra("date", dateNotify);
+                startActivity(settings);
+                item.setChecked(false);
+                item.setCheckable(false);
                 break;
         }
 
@@ -183,7 +234,7 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             if (requestCode == SEND_QUESTIONNAIRE_REQUEST) {
-                buildNotification();
+                buildNotification(true);
                 FragmentManager manager = getSupportFragmentManager();
                 Fragment fragment = manager.findFragmentByTag("Ankiety");
                 fragment.onActivityResult(requestCode, resultCode, data);

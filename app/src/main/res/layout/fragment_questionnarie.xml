@@ -25,6 +25,93 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <LinearLayout
+            android:orientation="vertical"
+            android:id="@+id/waitForClassified"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center|center_vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/addToDateOrReceipt"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                card_view:srcCompat="@drawable/ic_assignment_black_24dp"
+                android:alpha="0.5"/>
+
+            <TextView
+                android:id="@+id/waitForClassifiedTv"
+                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"/>
+
+        </LinearLayout>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardQuestionnaire"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            card_view:cardBackgroundColor="@color/colorAccent"
+            card_view:cardCornerRadius="2dp"
+            card_view:cardElevation="2dp"
+            card_view:cardPreventCornerOverlap="false"
+            card_view:cardUseCompatPadding="true"
+            android:visibility="gone">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center|center_vertical"
+                    android:padding="10dp">
+
+                    <TextView
+                        android:id="@+id/labelText2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:gravity="center"
+                        android:text="Dostępne jest badanie:"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/labelText2"
+                        android:layout_centerInParent="true"
+                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:text="wypełnij miesęczny test\n i wyślij lekarzowi !"
+                        android:textColor="@android:color/white"
+                        android:textSize="20sp" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/art"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:background="@drawable/card_image2">
+
+                </RelativeLayout>
+
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+
         <android.support.v7.widget.CardView
             android:id="@+id/cardInfo"
             android:layout_width="match_parent"
@@ -34,7 +121,8 @@
             card_view:cardCornerRadius="2dp"
             card_view:cardElevation="2dp"
             card_view:cardPreventCornerOverlap="false"
-            card_view:cardUseCompatPadding="true">
+            card_view:cardUseCompatPadding="true"
+            android:visibility="gone">
 
 
             <LinearLayout
@@ -84,69 +172,6 @@
                         android:layout_centerInParent="true"
                         android:text="info"
                         android:visibility="gone" />
-                </RelativeLayout>
-
-            </LinearLayout>
-        </android.support.v7.widget.CardView>
-
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardQuestionnaire"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            card_view:cardBackgroundColor="@color/colorAccent"
-            card_view:cardCornerRadius="2dp"
-            card_view:cardElevation="2dp"
-            card_view:cardPreventCornerOverlap="false"
-            card_view:cardUseCompatPadding="true">
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center|center_vertical"
-                    android:padding="10dp">
-
-                    <TextView
-                        android:id="@+id/labelText2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_centerHorizontal="true"
-                        android:gravity="center"
-                        android:text="Dostępne jest badanie:"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvInfo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelText2"
-                        android:layout_centerInParent="true"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center"
-                        android:text="wypełnij miesęczny test\n i wyślij lekarzowi !"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/art"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:background="@drawable/card_image2">
-
                 </RelativeLayout>
 
             </LinearLayout>

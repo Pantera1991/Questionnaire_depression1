@@ -12,6 +12,16 @@ public class Patient implements Serializable{
     private String surname;
     private User user;
     private boolean startQuestionnaire;
+    private int classified;
+
+    public int getClassified() {
+        return classified;
+    }
+
+    public Patient setClassified(int classified) {
+        this.classified = classified;
+        return this;
+    }
 
     public boolean isStartQuestionnaire() {
         return startQuestionnaire;

@@ -1,13 +1,13 @@
 package com.example.pantera.questionnaire_depression.api;
 
 import com.example.pantera.questionnaire_depression.model.Answer;
+import com.example.pantera.questionnaire_depression.model.DateResponse;
 import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
 
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.List;
 
 import okhttp3.ResponseBody;
@@ -18,6 +18,7 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 /**
@@ -25,24 +26,27 @@ import retrofit2.http.Path;
  */
 
 public interface RestApi {
+    @Headers({
+            "Content-Type: application/x-www-form-urlencoded"
+    })
     @FormUrlEncoded
-    @POST("/login/loginJson")
-    Call<Patient> login(@Field("j_username") String username, @Field("j_password") String password);
+    @POST("/loginJson")
+    Call<Patient> login(@Field(value="email", encoded = true) String username, @Field(value="password", encoded = true) String password);
 
     @Headers({
             "Content-Type: application/json"
     })
-    @GET("/rest/questionsservice/getallquestionsbytype/{type}")
+    @GET("/questions/questionlist/{type}")
     Call<List<Question>> questions(@Path("type") String type);
 
-    @GET("/rest/answerservice/getanswersbypatient/{id}")
+    @GET("/patient/answerlist/{id}")
     Call<List<Answer>> getAnswers(@Path("id") int id);
 
-    @GET("/rest/userservice/getdoctorbyid/{id}")
+    @GET("/patient/getdoctorbyid/{id}")
     Call<Doctor> getInformationAboutDoctor(@Path("id") int id);
 
-    @GET("/rest/answerservice/getdatelastsendquestionnaire/{patientId}")
-    Call<Date> getDateLastSendAnswer(@Path("patientId") int patientId);
+    @GET("/questions/getdatelastsendquestionnaire/{patientId}")
+    Call<DateResponse> getDateLastSendAnswer(@Path("patientId") int patientId);
     @Headers({
             "Content-Type: application/json"
     })
@@ -52,6 +56,12 @@ public interface RestApi {
     @Headers({
             "Content-Type: application/json"
     })
-    @POST("/rest/answerservice/sendanswer")
+    @POST("/patient/sendanswer")
     Call<ResponseBody> sendAnswer(@Body JSONObject answer);
+
+    @PUT("/patient/firebase_token/{idUser}/{token}")
+    Call<ResponseBody> updateFirebaseToken(@Path("idUser") int idUser, @Path("token") String token);
+
+    @GET("/patient/detalis/{idUser}")
+    Call<Patient> getDetalisPatient(@Path("idUser") int idUser);
 }

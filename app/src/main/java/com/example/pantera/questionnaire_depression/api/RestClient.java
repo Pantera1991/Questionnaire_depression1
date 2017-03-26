@@ -2,9 +2,7 @@ package com.example.pantera.questionnaire_depression.api;
 
 import android.content.Context;
 
-import com.example.pantera.questionnaire_depression.utils.Constants;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
-import com.facebook.stetho.okhttp3.StethoInterceptor;
 
 import java.io.IOException;
 
@@ -54,13 +52,14 @@ public class RestClient {
         });
 
         OkHttpClient client = httpClient
-                .addInterceptor(new StethoInterceptor())
                 .build();
-        String url = Constants.API_URL;
+
+        String url = "http://172.17.179.199:3000/";
+        //String url = "http://10.0.0.10:3000/";
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
+                //.client(client)
                 .build();
         return  retrofit.create(RestApi.class);
     }

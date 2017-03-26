@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "412331590396",
+    "firebase_url": "https://projekt-3b374.firebaseio.com",
+    "project_id": "projekt-3b374",
+    "storage_bucket": "projekt-3b374.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:412331590396:android:37c843ee4233abd2",
+        "android_client_info": {
+          "package_name": "com.example.pantera.questionnaire_depression"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "412331590396-a94idfmls7vdsqu78qg9cdvvte2cljhd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO0j4E_HaCKhCHUJhQPeF5pTkZOd-A0fM"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "412331590396-a94idfmls7vdsqu78qg9cdvvte2cljhd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

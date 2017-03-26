@@ -4,8 +4,8 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary1</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark1</item>
         <item name="colorAccent">@color/colorAccent</item>
         <!--<item name="android:radioButtonStyle">@style/MyRadioButton</item>-->
     </style>
@@ -24,18 +24,18 @@
     </style>
 
     <style name="AppTheme.Dark" parent="Theme.AppCompat.NoActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorPrimary">@color/colorPrimary1</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark1</item>
         <item name="colorAccent">@android:color/white</item>
 
-        <item name="android:windowBackground">@color/colorPrimary</item>
+        <item name="android:windowBackground">@color/colorPrimary1</item>
 
         <item name="colorControlNormal">@color/iron</item>
         <item name="colorControlActivated">@android:color/white</item>
         <item name="colorControlHighlight">@android:color/white</item>
         <item name="android:textColorHint">@color/iron</item>
 
-        <item name="colorButtonNormal">@color/colorPrimaryDark</item>
+        <item name="colorButtonNormal">@color/colorPrimaryDark1</item>
     </style>
 
     <style name="AppTheme.Starter" parent="Theme.AppCompat.NoActionBar">
@@ -49,7 +49,7 @@
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
     <style name="MyRadioButton" parent="Theme.AppCompat.Light">
-        <item name="colorControlNormal">@color/colorPrimaryDark</item>
+        <item name="colorControlNormal">@color/colorPrimaryDark1</item>
         <item name="colorControlActivated">@color/colorAccent</item>
     </style>
 

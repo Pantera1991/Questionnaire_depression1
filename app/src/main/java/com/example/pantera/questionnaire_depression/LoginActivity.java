@@ -2,14 +2,13 @@ package com.example.pantera.questionnaire_depression;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -50,8 +49,16 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        mProgressView = findViewById(R.id.login_progress);
+        mLoginView = (EditText) findViewById(R.id.login);
+        showProgress(true);
         sessionManager = new SessionManager(getApplicationContext());
-        sessionManager.checkLogin();
+        if(sessionManager.isLoggedIn()){
+
+            sessionManager.updateUserData();
+        }else{
+            showProgress(false);
+        }
     }
 
     @Override
@@ -59,10 +66,15 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        if(mLoginView != null && mProgressView != null){
+            showProgress(false);
+        }
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
         // Set up the login form.
         mLoginView = (EditText) findViewById(R.id.login);
-
-
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -147,12 +159,9 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+
             showProgress(true);
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
@@ -160,49 +169,39 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private boolean isLoginValid(String login) {
-        //TODO: Replace this with your own logic
         return true;//login.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
         return password.length() > 4;
     }
 
     /**
      * Shows the progress UI and hides the login form.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+
     private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-                }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+
     }
 
 
@@ -215,17 +214,17 @@ public class LoginActivity extends AppCompatActivity {
         private final String mLogin;
         private final String mPassword;
         private Response<Patient> response;
+        private RestClient restClient;
 
         UserLoginTask(String email, String password) {
             mLogin = email;
             mPassword = password;
+            restClient = new RestClient(getApplicationContext());
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
-            RestClient restClient = new RestClient(getApplicationContext());
             Call<Patient> patientCall = restClient.get().login(mLogin, mPassword);
 
             try {
@@ -235,7 +234,6 @@ public class LoginActivity extends AppCompatActivity {
                 return false;
             }
 
-            // TODO: register the new account here.
             return true;
         }
 
@@ -257,19 +255,20 @@ public class LoginActivity extends AppCompatActivity {
                             cookieValue = matcher.group(1);
                         }
 
+
                         if (patient != null) {
 
-                            if(patient.isStartQuestionnaire()){
+                            if (patient.isStartQuestionnaire()) {
                                 sessionManager.createLoginSession(patient, cookieValue);
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(intent);
                                 finish();
-                            }else{
+                            } else {
                                 Intent intent = new Intent(getApplicationContext(), StarterActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                intent.putExtra("patient",patient);
-                                intent.putExtra("cookieValue",cookieValue);
+                                intent.putExtra("patient", patient);
+                                intent.putExtra("cookieValue", cookieValue);
                                 startActivity(intent);
                                 finish();
                             }

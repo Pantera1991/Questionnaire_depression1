@@ -157,9 +157,6 @@ public class StarterActivity extends AppCompatActivity {
                     }
                 }
 
-                //  update 1st time pref
-                //Utils.saveSharedSetting(PagerActivity.this, MainActivity.PREF_USER_FIRST_TIME, "false");
-
             }
         });
     }

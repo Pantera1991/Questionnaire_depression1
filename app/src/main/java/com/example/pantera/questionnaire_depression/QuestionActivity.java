@@ -2,14 +2,12 @@ package com.example.pantera.questionnaire_depression;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -33,6 +31,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -143,12 +143,7 @@ public class QuestionActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -168,12 +163,7 @@ public class QuestionActivity extends AppCompatActivity {
                     mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
                 }
             });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+
     }
 
     private void showDialog(final String text, String title) {
@@ -262,7 +252,8 @@ public class QuestionActivity extends AppCompatActivity {
                 Intent data = getIntent();
                 data.putExtra("idAnswer", answerId);
                 data.putExtra("points", (int) points);
-                data.putExtra("date", new Date().toString());
+                Format formatter = new SimpleDateFormat("dd-MM-yyyy");
+                data.putExtra("date", formatter.format(new Date()));
                 setResult(Activity.RESULT_OK, data);
                 finish();
             } else {

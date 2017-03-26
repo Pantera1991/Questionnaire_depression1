@@ -6,13 +6,11 @@
     <string name="prompt_password">Hasło</string>
     <string name="action_sign_in">Zaloguj</string>
     <string name="action_sign_in_short">Zaloguj</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
+    <string name="error_invalid_email">Nieprawidłowy adres email</string>
+    <string name="error_invalid_password">Hasło jest za krótkie</string>
+    <string name="error_incorrect_password">Hasło jest błędne</string>
+    <string name="error_field_required">Pole email jest wymagane</string>
+
     <string name="name_questionnaire">Skala depresji\nBecka</string>
     <string name="offline_network">Brak połączenia z internetem</string>
     <string name="offline_serv">Brak połączenia z serwerem</string>
@@ -30,10 +28,12 @@
     <string name="diagnosis">DIAGNOZA</string>
     <string name="title_activity_settings">Ustawienia</string>
 
-    <!-- Strings related to Settings -->
+
     <string name="pref_title_new_message_notifications">Powiadomienie o nowym badaniu</string>
     <string name="title_activity_starter">StarterActivity</string>
-    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_wait_classified">Oczekiwanie na weryfikację \nLekarz musi ocenić twój wstępny test</string>
+    <string name="title_discard_classified">Nie zostałeś/aś zakwalifikowany/a \ndo dalszeo etapu badańe</string>
+
 
 
 </resources>
