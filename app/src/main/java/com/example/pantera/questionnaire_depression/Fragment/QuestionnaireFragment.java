@@ -6,11 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +18,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.MainActivity;
+import com.example.pantera.questionnaire_depression.QuestionnaireApplication;
 import com.example.pantera.questionnaire_depression.R;
 import com.example.pantera.questionnaire_depression.adapter.AnswerAdapter;
-import com.example.pantera.questionnaire_depression.api.RestClient;
+import com.example.pantera.questionnaire_depression.controller.QuestionnaireController;
 import com.example.pantera.questionnaire_depression.model.Answer;
 import com.example.pantera.questionnaire_depression.model.DateResponse;
-import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
 import org.joda.time.DateTime;
@@ -36,10 +36,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.Locale;
 
 /**
  * Created by Pantera on 2016-12-26.
@@ -47,7 +44,6 @@ import retrofit2.Response;
 
 public class QuestionnaireFragment extends Fragment {
 
-    private static final String TAG = "QuestionnaireFrag";
     private Context mContext;
     private TextView mTvDate, mTvLabel,mTvWaitForClassified;
     private MainActivity mainActivity;
@@ -57,10 +53,30 @@ public class QuestionnaireFragment extends Fragment {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private RestClient restClient;
     private boolean disableFab = true;
     private SessionManager sessionManager;
+    private QuestionnaireController questionnaireController;
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        questionnaireController.onInit(this);
+        questionnaireController.loadQuestionnaire();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        questionnaireController.onStop();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        QuestionnaireApplication app = ((QuestionnaireApplication) getActivity().getApplication());
+        questionnaireController = app.getQuestionnaireController();
+        sessionManager = app.getSessionManager();
+    }
 
     @Nullable
     @Override
@@ -78,8 +94,6 @@ public class QuestionnaireFragment extends Fragment {
         mProgressView = rootView.findViewById(R.id.ques_progress);
 
         //lista wyslanych
-        restClient = new RestClient(rootView.getContext());
-        sessionManager = new SessionManager(mContext);
         mRecyclerView = (RecyclerView) rootView.findViewById(R.id.sent_ques_recycler_view);
 
         if (!disableFab) {
@@ -115,42 +129,13 @@ public class QuestionnaireFragment extends Fragment {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(rootView.getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        loadData();
         return rootView;
     }
-
-    private void loadData() {
-        showProgress(true);
-        SessionManager sessionManager = new SessionManager(mContext);
-        int id = sessionManager.getUserDetails().getId();
-        Call<List<Answer>> call = restClient.get().getAnswers(id);
-
-        call.enqueue(new Callback<List<Answer>>() {
-            @Override
-            public void onResponse(Call<List<Answer>> call, Response<List<Answer>> response) {
-                Log.d("status", String.valueOf(response.code()));
-                mAdapter = new AnswerAdapter(response.body(), mContext);
-                mRecyclerView.setAdapter(mAdapter);
-                setupView();
-                showProgress(false);
-            }
-
-            @Override
-            public void onFailure(Call<List<Answer>> call, Throwable t) {
-                Log.e(TAG, t.toString());
-                Log.d("callback", call.request().toString());
-                ServerConnectionLost.returnToLoginActivity(getActivity());
-                showProgress(false);
-
-            }
-        });
-    }
-
 
 
     public void setupView() {
 
-        String date = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+        String date = sessionManager.getDateLastSendQuestion();
         int classified = sessionManager.getPref().getInt(SessionManager.KEY_CLASSIFIED, 2);
         switch (classified) {
             case 0:
@@ -164,8 +149,11 @@ public class QuestionnaireFragment extends Fragment {
             case 1:
                 DateTime nowTime = new DateTime();
                 DateTime dateTime = DateResponse.stringToDateTime(date);
-                dateTime = dateTime.plus(Months.ONE);
-                if (date == null || nowTime.isAfter(dateTime.getMillis())) {
+                if(dateTime != null){
+                    dateTime = dateTime.plus(Months.ONE);
+                }
+
+                if (dateTime == null || nowTime.isAfter(dateTime.getMillis())) {
                     disableFab = false;
                     cardQuestionnaire.setVisibility(View.VISIBLE);
                     cardInfo.setVisibility(View.GONE);
@@ -195,7 +183,7 @@ public class QuestionnaireFragment extends Fragment {
     }
 
 
-    private void showProgress(final boolean show) {
+    public void showProgress(final boolean show) {
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
@@ -227,7 +215,7 @@ public class QuestionnaireFragment extends Fragment {
             AnswerAdapter questionAdapter = (AnswerAdapter) mAdapter;
             Answer answer = new Answer();
             answer.setId(data.getIntExtra("idAnswer", 0));
-            DateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+            DateFormat format = new SimpleDateFormat("dd-MM-yyyy", new Locale("pl_PL"));
             Date date = null;
             try {
                 date = format.parse(data.getStringExtra("date"));
@@ -239,5 +227,15 @@ public class QuestionnaireFragment extends Fragment {
             questionAdapter.addItem(answer);
             mRecyclerView.smoothScrollToPosition(0);
         }
+    }
+
+    public void successLoadQuestionnaire(List<Answer> list) {
+        mAdapter = new AnswerAdapter(list, mContext);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public void showError(String msg) {
+        Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 }

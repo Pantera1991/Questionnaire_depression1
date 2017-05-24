@@ -1,12 +1,10 @@
 package com.example.pantera.questionnaire_depression;
 
 import android.animation.ArgbEvaluator;
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -27,24 +25,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.example.pantera.questionnaire_depression.adapter.QuestionAdapter;
-import com.example.pantera.questionnaire_depression.api.RestClient;
-import com.example.pantera.questionnaire_depression.model.Patient;
+import com.example.pantera.questionnaire_depression.controller.StarterController;
 import com.example.pantera.questionnaire_depression.model.Question;
-import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class StarterActivity extends AppCompatActivity {
 
@@ -52,21 +38,32 @@ public class StarterActivity extends AppCompatActivity {
     private ImageButton mNextBtn;
     private Button mFinishBtn;
     private ImageView[] indicators;
-    private RestClient restClient;
+
     private int page = 0;
-    private Patient patient;
-    private String cookieValue;
+    private StarterController starterController;
+    private ProgressDialog mDialog;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        starterController.onInit(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        starterController.onStop();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_starter);
 
-        //extras
-        patient = (Patient) getIntent().getSerializableExtra("patient");
-        cookieValue = getIntent().getStringExtra("cookieValue");
+        QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
+        starterController = app.getStarterController();
 
-        restClient = new RestClient(this);
+
         ImageView zero = (ImageView) findViewById(R.id.intro_indicator_0);
         ImageView one = (ImageView) findViewById(R.id.intro_indicator_1);
 
@@ -194,84 +191,36 @@ public class StarterActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("Wyślij", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        new SendTask(StarterActivity.this, points, listAnswers).execute();
+                        starterController.sendStarterTest(listAnswers);
                     }
                 })
-                .setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
+                .setNegativeButton("Anuluj", null);
         AlertDialog alert = builder.create();
         alert.show();
     }
 
+    public void showProgressDialog(){
+        mDialog = new ProgressDialog(StarterActivity.this);
+        mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mDialog.setMessage("Wysyłanie...");
+        mDialog.show();
+    }
 
-    class SendTask extends AsyncTask<Object, Void, Boolean> {
-        Context context;
-        ProgressDialog mDialog;
-        List<Integer> listAnswers;
-        float points;
-        private int answerId;
+    public void hideProgressDialog(){
+        mDialog.dismiss();
+        mDialog = null;
+    }
 
-        SendTask(Context context, float points, List<Integer> listAnswers) {
-            this.context = context;
-            this.listAnswers = listAnswers;
-            this.points = points;
-        }
+    public void showError(final String msg){
+        Snackbar.make(mFinishBtn, msg, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            mDialog = new ProgressDialog(StarterActivity.this);
-            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            mDialog.setMessage("Wysyłanie...");
-            mDialog.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(Object... params) {
-            try {
-
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("patientID", String.valueOf(patient.getId()));
-                JSONArray answers = new JSONArray();
-                for (int i = 0; i < listAnswers.size(); i++) {
-                    answers.put(i, listAnswers.get(i));
-                }
-                jsonObject.put("answers", answers);
-                Call<ResponseBody> call = restClient.get().sendAnswer(jsonObject);
-                Response<ResponseBody> exec = call.execute();
-                answerId = Integer.parseInt(exec.body().string());
-                return exec.code() == 200;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-
-            if (result) {
-                SessionManager sessionManager = new SessionManager(StarterActivity.this);
-                patient.setStartQuestionnaire(true);
-                sessionManager.createLoginSession(patient, cookieValue);
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-            } else {
-                Snackbar.make(mFinishBtn, getResources().getString(R.string.offline_serv), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-            mDialog.dismiss();
-        }
+    public void sendOk(){
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        finish();
     }
 
 
@@ -301,8 +250,22 @@ public class StarterActivity extends AppCompatActivity {
         private static final String ARG_SECTION_NUMBER = "section_number";
         private RecyclerView mRecyclerView;
         private RecyclerView.Adapter mAdapter;
-        private RestClient restClient;
         private Context mContext;
+        private SessionManager sessionManager;
+        private StarterController starterController;
+
+        @Override
+        public void onStart() {
+            super.onStart();
+            starterController.onInit(this);
+            starterController.loadStartQuestions();
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            starterController.onStop();
+        }
 
         public static StartQuestionnaireFragment newInstance(int sectionNumber) {
             StartQuestionnaireFragment fragment = new StartQuestionnaireFragment();
@@ -317,7 +280,10 @@ public class StarterActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_starter_questions, container, false);
             mContext = rootView.getContext();
-            restClient = new RestClient(rootView.getContext());
+            QuestionnaireApplication app = ((QuestionnaireApplication)getActivity().getApplication());
+            starterController = app.getStarterController();
+            sessionManager = app.getSessionManager();
+
             mRecyclerView = (RecyclerView) rootView.findViewById(R.id.starter_questions_recycler_view);
             if (mRecyclerView != null) {
                 mRecyclerView.setHasFixedSize(true);
@@ -326,58 +292,30 @@ public class StarterActivity extends AppCompatActivity {
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(mContext);
             mRecyclerView.setLayoutManager(mLayoutManager);
             registerForContextMenu(mRecyclerView);
-            loadData();
             return rootView;
         }
 
 
-        private void loadData() {
-            //showProgress(true);
-            Call<List<Question>> call = restClient.get().questions("hads");
-
-            call.enqueue(new Callback<List<Question>>() {
-
-                @Override
-                public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
-                    Log.d("status question", String.valueOf(response.code()));
-
-                    switch (response.code()) {
-                        case 200:
-                            List<Question> questionList = response.body();
-                            mAdapter = new QuestionAdapter(questionList, mContext);
-                            mRecyclerView.setAdapter(mAdapter);
-                            //showProgress(false);
-                            break;
-                        case 404:
-                            //showProgress(false);
-                            ServerConnectionLost.returnToLoginActivity((Activity) mContext);
-                            break;
-                    }
-
-                }
-
-                @Override
-                public void onFailure(Call<List<Question>> call, Throwable t) {
-                    //showProgress(false);
-                    Log.d("questions error ", t.getMessage());
-                    ServerConnectionLost.returnToLoginActivity((Activity) mContext);
-                }
-            });
-
+        public void successLoadData(List<Question> questionList) {
+            mAdapter = new QuestionAdapter(questionList, mContext, sessionManager);
+            mRecyclerView.setAdapter(mAdapter);
         }
 
         public RecyclerView.Adapter getAdapter() {
             return mAdapter;
         }
 
-
+        public void showError(String msg){
+            Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
     }
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
      */
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
+    private class SectionsPagerAdapter extends FragmentPagerAdapter {
 
         SectionsPagerAdapter(FragmentManager fm) {
             super(fm);

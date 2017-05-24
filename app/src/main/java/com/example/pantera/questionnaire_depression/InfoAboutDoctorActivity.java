@@ -6,23 +6,19 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import com.example.pantera.questionnaire_depression.api.RestClient;
+import com.example.pantera.questionnaire_depression.controller.DoctorController;
 import com.example.pantera.questionnaire_depression.model.Doctor;
-import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
-import com.example.pantera.questionnaire_depression.utils.SessionManager;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class InfoAboutDoctorActivity extends AppCompatActivity {
+    private DoctorController doctorController;
     private TextView email;
     private TextView phone;
     private CollapsingToolbarLayout collapsingToolbarLayout;
@@ -31,13 +27,31 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
 
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        doctorController.onInit(this);
+        doctorController.loadDetails();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        doctorController.onStop();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_about_doctor);
+        doctorController = ((QuestionnaireApplication) getApplication()).getDoctorController();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarInfo);
-        toolbar.setTitle("");
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null){
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
+
         mProgressView = findViewById(R.id.doctor_info__progress);
         mContentView = findViewById(R.id.doctor_info__content);
         collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayoutInfo);
@@ -56,41 +70,9 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
                 startActivity(smsIntent);
             }
         });
-        initData();
     }
 
-    private void initData(){
-        showProgress(true);
-        RestClient restClient = new RestClient(InfoAboutDoctorActivity.this);
-        SessionManager sessionManager = new SessionManager(InfoAboutDoctorActivity.this);
-        int patientId = sessionManager.getUserDetails().getId();
-
-        Call<Doctor> call = restClient.get().getInformationAboutDoctor(patientId);
-
-        call.enqueue(new Callback<Doctor>() {
-            @Override
-            public void onResponse(Call<Doctor> call, Response<Doctor> response) {
-
-                Doctor doctor = response.body();
-                String phoneCode = "+48 "+doctor.getPhone();
-                phone.setText(phoneCode);
-                email.setText(doctor.getUser().getUsername());
-                collapsingToolbarLayout.setTitle("dr. "+doctor.getName()+" "+doctor.getSurname());
-                showProgress(false);
-            }
-
-            @Override
-            public void onFailure(Call<Doctor> call, Throwable t) {
-                Log.d("callback",call.request().toString());
-                Log.d("informationError",t.getMessage());
-                showProgress(false);
-                ServerConnectionLost.returnToLoginActivity(InfoAboutDoctorActivity.this);
-
-            }
-        });
-    }
-
-    private void showProgress(final boolean show) {
+    public void showProgress(final boolean show) {
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
         mContentView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -110,5 +92,17 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
                 mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
+    }
+
+    public void showError(String msg) {
+        Snackbar.make(mContentView, msg, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
+
+    public void successLoadDetails(Doctor doctor) {
+        String phoneWithCode = "+48 "+doctor.getPhone();
+        phone.setText(phoneWithCode);
+        email.setText(doctor.getUser().getUsername());
+        collapsingToolbarLayout.setTitle("dr. "+doctor.getName()+" "+doctor.getSurname());
     }
 }

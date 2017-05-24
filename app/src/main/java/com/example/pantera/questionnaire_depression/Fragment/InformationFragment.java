@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -51,6 +50,12 @@ public class InformationFragment extends Fragment {
     private View mLayoutRecyclerView;
     private View rootView;
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        initWiki();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -70,7 +75,6 @@ public class InformationFragment extends Fragment {
 
         btnWiki = (Button) rootView.findViewById(R.id.btnWiki);
         mTvWiki = (TextView) rootView.findViewById(R.id.tv_wiki);
-        initWiki();
         return rootView;
     }
 
@@ -136,17 +140,10 @@ public class InformationFragment extends Fragment {
         t2.setText(Diagnosis.ŁAGODNA_DEPRESJA.toString().replace("_", " ").toLowerCase());
         t3.setText(Diagnosis.UMIARKOWANIE_CIĘŻKA_DEPRESJA.toString().replace("_", " ").toLowerCase());
         t4.setText(Diagnosis.BARDZO_CIĘŻKA_DEPRESJA.toString().replace("_", " ").toLowerCase());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            t1.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((0))), null, null, null);
-            t2.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((12))), null, null, null);
-            t3.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((27))), null, null, null);
-            t4.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((50))), null, null, null);
-        } else {
-            t1.setCompoundDrawables(generateShape(Diagnosis.getColor((0))), null, null, null);
-            t2.setCompoundDrawables(generateShape(Diagnosis.getColor((12))), null, null, null);
-            t3.setCompoundDrawables(generateShape(Diagnosis.getColor((27))), null, null, null);
-            t4.setCompoundDrawables(generateShape(Diagnosis.getColor((50))), null, null, null);
-        }
+        t1.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((0))), null, null, null);
+        t2.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((12))), null, null, null);
+        t3.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((27))), null, null, null);
+        t4.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((50))), null, null, null);
 
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);

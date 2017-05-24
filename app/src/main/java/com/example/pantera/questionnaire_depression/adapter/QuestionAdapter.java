@@ -14,7 +14,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.R;
-import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
@@ -33,19 +32,18 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private Context mContext;
     private SparseArray<String> groups = new SparseArray<>();
     private Set<String> titlegroup = new LinkedHashSet<>();
-    private Patient patient;
+    private SessionManager sessionManager;
 
-    public QuestionAdapter(List<Question> listOfQuestion, Context mContext) {
+    public QuestionAdapter(List<Question> listOfQuestion, Context mContext, SessionManager sessionManager) {
         this.listOfQuestion = listOfQuestion;
         this.mContext = mContext;
-        SessionManager sessionManager = new SessionManager(mContext);
-        this.patient = sessionManager.getUserDetails();
+        this.sessionManager = sessionManager;
 
         for (int i = 0; i <= getItemCount(); i++) {
             groups.put(i, String.valueOf(((char) (65 + i))));
         }
 
-        if (!patient.isStartQuestionnaire()) {
+        if (!sessionManager.isStartTest()) {
             for (int i = 0; i < listOfQuestion.size(); i++) {
                 titlegroup.add(listOfQuestion.get(i).getGroupOfQuestion().getTitle());
             }
@@ -56,7 +54,7 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public int getItemViewType(int position) {
 
-        if (patient.isStartQuestionnaire()) {
+        if (sessionManager.isStartTest()) {
             return 0;
         } else {
             return 1;

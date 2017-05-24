@@ -166,7 +166,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         setupActionBar();
         if(getIntent().getSerializableExtra("date") != null){
             String d = getIntent().getSerializableExtra("date").toString();
-            dateNotify = new DateTime(d);
+            String[] date = d.split("-");
+            dateNotify = new DateTime().withDayOfMonth(Integer.parseInt(date[0])).withMonthOfYear(Integer.parseInt(date[1])).withYear(Integer.parseInt(date[2]));
         }
 
 

@@ -4,10 +4,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -20,45 +18,51 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.pantera.questionnaire_depression.adapter.QuestionAdapter;
-import com.example.pantera.questionnaire_depression.api.RestClient;
+import com.example.pantera.questionnaire_depression.controller.QuestionController;
 import com.example.pantera.questionnaire_depression.model.Question;
 import com.example.pantera.questionnaire_depression.utils.Diagnosis;
-import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.Locale;
 
 public class QuestionActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private RestClient restClient;
     private View mProgressView;
+    private SessionManager sessionManager;
+    private QuestionController questionController;
+    private ProgressDialog mDialog;
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        questionController.onInit(this);
+        questionController.loadQuestions();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        questionController.onStop();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
 
-        restClient = new RestClient(this);
+        QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
+        questionController = app.getQuestionController();
+        sessionManager = app.getSessionManager();
 
         mProgressView = findViewById(R.id.question_progress);
-
         mRecyclerView = (RecyclerView) findViewById(R.id.question_recycler_view);
         if (mRecyclerView != null) {
             mRecyclerView.setHasFixedSize(true);
@@ -67,44 +71,8 @@ public class QuestionActivity extends AppCompatActivity {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(QuestionActivity.this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         registerForContextMenu(mRecyclerView);
-
-        loadData();
     }
 
-    private void loadData() {
-        showProgress(true);
-        Call<List<Question>> call = restClient.get().questions("becka");
-
-        call.enqueue(new Callback<List<Question>>() {
-
-            @Override
-            public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
-                Log.d("status question", String.valueOf(response.code()));
-
-                switch (response.code()) {
-                    case 200:
-                        List<Question> questionList = response.body();
-                        mAdapter = new QuestionAdapter(questionList, QuestionActivity.this);
-                        mRecyclerView.setAdapter(mAdapter);
-                        showProgress(false);
-                        break;
-                    case 404:
-                        showProgress(false);
-                        ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
-                        break;
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<List<Question>> call, Throwable t) {
-                showProgress(false);
-                Log.d("questions error ", t.getMessage());
-                ServerConnectionLost.returnToLoginActivity(QuestionActivity.this);
-            }
-        });
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -143,7 +111,12 @@ public class QuestionActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void showProgress(final boolean show) {
+    public void loadQuestionsSuccess(List<Question> questionList){
+        mAdapter = new QuestionAdapter(questionList, QuestionActivity.this, sessionManager);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    public void showProgress(final boolean show) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -166,7 +139,19 @@ public class QuestionActivity extends AppCompatActivity {
 
     }
 
-    private void showDialog(final String text, String title) {
+    public void showProgressDialog(){
+        mDialog = new ProgressDialog(QuestionActivity.this);
+        mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        mDialog.setMessage("Wysyłanie...");
+        mDialog.show();
+    }
+
+    public void hideProgressDialog(){
+        mDialog.dismiss();
+        mDialog = null;
+    }
+
+    public void showDialog(final String text, String title) {
         AlertDialog.Builder builder = new AlertDialog.Builder(QuestionActivity.this);
         builder.setMessage(text)
                 .setTitle(title)
@@ -182,7 +167,7 @@ public class QuestionActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .setPositiveButton("Wyślij", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        new SendTask(QuestionActivity.this, points, listAnswers).execute();
+                        questionController.sendQuestionnaire(listAnswers, points);
                     }
                 })
                 .setNegativeButton("Anuluj", new DialogInterface.OnClickListener() {
@@ -194,77 +179,21 @@ public class QuestionActivity extends AppCompatActivity {
         alert.show();
     }
 
-
-
-    class SendTask extends AsyncTask<Object, Void, Boolean> {
-        Context context;
-        ProgressDialog mDialog;
-        List<Integer> listAnswers;
-        float points;
-        private int answerId;
-
-        SendTask(Context context, float points, List<Integer> listAnswers) {
-            this.context = context;
-            this.listAnswers = listAnswers;
-            this.points = points;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-            mDialog = new ProgressDialog(QuestionActivity.this);
-            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            mDialog.setMessage("Wysyłanie...");
-            mDialog.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(Object... params) {
-            try {
-                SessionManager sessionManager = new SessionManager(QuestionActivity.this);
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("patientID", String.valueOf(sessionManager.getUserDetails().getId()));
-                JSONArray answers = new JSONArray();
-                for (int i = 0; i < listAnswers.size(); i++) {
-                    answers.put(i, listAnswers.get(i));
-                }
-                jsonObject.put("answers", answers);
-                Call<ResponseBody> call = restClient.get().sendAnswer(jsonObject);
-                Response<ResponseBody> exec = call.execute();
-                answerId = Integer.parseInt(exec.body().string());
-                return exec.code() == 200;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-
-            if (result) {
-
-                Intent data = getIntent();
-                data.putExtra("idAnswer", answerId);
-                data.putExtra("points", (int) points);
-                Format formatter = new SimpleDateFormat("dd-MM-yyyy");
-                data.putExtra("date", formatter.format(new Date()));
-                setResult(Activity.RESULT_OK, data);
-                finish();
-            } else {
-                Snackbar.make(mRecyclerView, getResources().getString(R.string.offline_serv), Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-
-
-            mDialog.dismiss();
-        }
+    public void showError(String msg) {
+        Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
+
+    public void successSendQuestionnaire(int answerId, float points){
+        Intent data = getIntent();
+        data.putExtra("idAnswer", answerId);
+        data.putExtra("points", (int) points);
+        Format formatter = new SimpleDateFormat("dd-MM-yyyy", new Locale("pl_PL"));
+        data.putExtra("date", formatter.format(new Date()));
+        setResult(Activity.RESULT_OK, data);
+        finish();
+    }
+
 }
 
 

@@ -2,6 +2,7 @@ package com.example.pantera.questionnaire_depression.settings;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
@@ -21,30 +22,24 @@ public class TimePreference extends DialogPreference {
     private int mHour = 0;
     private int mMinute = 0;
     private TimePicker picker = null;
-    private final String DEFAULT_VALUE = "15:00";
 
-    public static int getHour(String time) {
+    private static int getHour(String time) {
         String[] pieces = time.split(":");
         return Integer.parseInt(pieces[0]);
     }
 
-    public static int getMinute(String time) {
+    private static int getMinute(String time) {
         String[] pieces = time.split(":");
         return Integer.parseInt(pieces[1]);
     }
 
-
     public TimePreference(Context context, AttributeSet attrs) {
-        this(context, attrs, android.R.attr.dialogPreferenceStyle);
-    }
-
-    public TimePreference(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, android.R.attr.dialogPreferenceStyle);
         setPositiveButtonText("Ustaw");
         setNegativeButtonText("Anuluj");
     }
 
-    public void setTime(int hour, int minute) {
+    private void setTime(int hour, int minute) {
         mHour = hour;
         mMinute = minute;
         String time = toTime(mHour, mMinute);
@@ -53,12 +48,12 @@ public class TimePreference extends DialogPreference {
         notifyChanged();
     }
 
-    public String toTime(int hour, int minute) {
+    private String toTime(int hour, int minute) {
         return String.valueOf(hour) + ":" + String.valueOf(minute);
     }
 
-    public void updateSummary() {
-        String time = String.format("%02d",mHour) + ":" + String.format("%02d",mMinute);
+    private void updateSummary() {
+        String time = String.format("%02d", mHour) + ":" + String.format("%02d", mMinute);
         setSummary(time);
     }
 
@@ -72,8 +67,15 @@ public class TimePreference extends DialogPreference {
     @Override
     protected void onBindDialogView(View v) {
         super.onBindDialogView(v);
-        picker.setCurrentHour(mHour);
-        picker.setCurrentMinute(mMinute);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            picker.setHour(mHour);
+            picker.setMinute(mMinute);
+        }else{
+            picker.setCurrentHour(mHour);
+            picker.setCurrentMinute(mMinute);
+        }
+
     }
 
     @Override
@@ -104,14 +106,13 @@ public class TimePreference extends DialogPreference {
         String time;
 
         if (restorePersistedValue) {
+            String DEFAULT_VALUE = "15:00";
             if (defaultValue == null) {
                 time = getPersistedString(DEFAULT_VALUE);
-            }
-            else {
+            } else {
                 time = getPersistedString(DEFAULT_VALUE);
             }
-        }
-        else {
+        } else {
             time = defaultValue.toString();
         }
 
@@ -123,12 +124,11 @@ public class TimePreference extends DialogPreference {
     }
 
 
-
     public static Date toDate(String inTime) {
         try {
             DateFormat inTimeFormat = new SimpleDateFormat("HH:mm", Locale.GERMANY);
             return inTimeFormat.parse(inTime);
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             return null;
         }
     }

@@ -29,7 +29,6 @@ import com.example.pantera.questionnaire_depression.model.DateResponse;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.settings.SettingsActivity;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
-import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.joda.time.DateTime;
 import org.joda.time.Months;
@@ -51,8 +50,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
+        sessionManager = app.getSessionManager();
+
+        if(!sessionManager.isLoggedIn()){
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        if(!sessionManager.isStartTest()){
+            startActivity(new Intent(this, StarterActivity.class));
+            finish();
+            return;
+        }
+
+        setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("Ankiety do wypełnienia");
         setSupportActionBar(toolbar);
@@ -60,8 +74,6 @@ public class MainActivity extends AppCompatActivity
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        //initInfoCard session
-        sessionManager = new SessionManager(getApplicationContext());
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -75,7 +87,7 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -95,19 +107,23 @@ public class MainActivity extends AppCompatActivity
         navigationView.setCheckedItem(R.id.nav_ques_fill);
         navigationView.getMenu().performIdentifierAction(R.id.nav_ques_fill, 0);
 
-        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        Log.d("MAIN", refreshedToken);
+        //String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+        //Log.d("MAIN", refreshedToken);
 
         boolean alarmUp = (PendingIntent.getBroadcast(this, 0,
                 new Intent("com.example.pantera.questionnaire_depression"),
                 PendingIntent.FLAG_NO_CREATE) != null);
-        String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+        String dateNotify = sessionManager.getDateLastSendQuestion();
         DateTime nowTime = new DateTime();
         DateTime dateTimeCheck = DateResponse.stringToDateTime(dateNotify);
-        dateTimeCheck = dateTimeCheck.plus(Months.ONE);
-        if (!alarmUp && !nowTime.isAfter(dateTimeCheck.getMillis())) {
-            buildNotification(false);
+
+        if (dateTimeCheck != null) {
+            dateTimeCheck = dateTimeCheck.plus(Months.ONE);
+            if (!alarmUp && !nowTime.isAfter(dateTimeCheck.getMillis())) {
+                buildNotification(false);
+            }
         }
+
     }
 
 
@@ -134,14 +150,14 @@ public class MainActivity extends AppCompatActivity
 
         if (enableNotify) {
             String timePref = preferences.getString("pref_key_time", null);
-            String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+            String dateNotify = sessionManager.getDateLastSendQuestion();
 
             if (timePref != null && dateNotify != null) {
                 String[] timeSplit = timePref.split(":");
                 DateTime dateTime;
-                if(now){
+                if (now) {
                     dateTime = new DateTime().withHourOfDay(Integer.parseInt(timeSplit[0])).withMinuteOfHour(Integer.parseInt(timeSplit[1])).withSecondOfMinute(0);
-                }else {
+                } else {
                     dateTime = DateResponse.stringToDateTime(dateNotify).withHourOfDay(Integer.parseInt(timeSplit[0])).withMinuteOfHour(Integer.parseInt(timeSplit[1])).withSecondOfMinute(0).plusMonths(1);
                 }
                 DateTimeFormatter dtf = DateTimeFormat.forPattern("dd-MM-Y HH:mm:ss");
@@ -169,8 +185,6 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
-
 
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -214,9 +228,11 @@ public class MainActivity extends AppCompatActivity
                 alarmManager.cancel(pendingIntent);
 
                 sessionManager.logoutUser();
+                startActivity(new Intent(this, LoginActivity.class));
+                finish();
                 break;
             case R.id.nav_settings:
-                String dateNotify = sessionManager.getPref().getString(SessionManager.KEY_LAST_SEND_QUESTION, null);
+                String dateNotify = sessionManager.getDateLastSendQuestion();
                 Intent settings = new Intent(MainActivity.this, SettingsActivity.class);
                 settings.putExtra("date", dateNotify);
                 startActivity(settings);
