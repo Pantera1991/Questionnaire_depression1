@@ -50,8 +50,8 @@ public class RestClient {
         OkHttpClient client = httpClient
                 .build();
 
-        String url = "http://10.0.0.18:3000/";
-        //String url = "http://192.168.1.101:3000/";
+        //String url = "http://10.0.0.18:3000/";
+        String url = "http://192.168.1.101:3000/";
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(url)
                 .addConverterFactory(GsonConverterFactory.create())

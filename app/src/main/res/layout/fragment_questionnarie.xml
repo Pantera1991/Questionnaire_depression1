@@ -1,189 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/questionnaire_fragment"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/questionnaireRefreshLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:layout_marginTop="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin">
 
-    <!-- progress -->
-    <ProgressBar
-        android:id="@+id/ques_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10dp"
-        android:visibility="gone" />
-
     <LinearLayout
-        android:id="@+id/contentQuest"
+        android:id="@+id/questionnaire_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- progress -->
+        <ProgressBar
+            android:id="@+id/ques_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/errorConnectionView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="50dp">
+
+            <ImageView
+                android:id="@+id/img"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/lostconnection"
+                android:alpha="0.5"/>
+
+            <TextView
+                android:id="@+id/t1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Oops, twoje połącznie z internetem zostało zerwane lub wystąpił problem z polączniem z serwerem"
+                android:text="@string/lost_connection"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:layout_below="@id/img"/>
+
+            <TextView
+                android:layout_marginTop="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="przeciągnij palcem w dół ekranu aby spróbować ponownie załadować dane"
+                android:text="@string/lost_connection_refresh"
+                android:gravity="center"
+                android:layout_below="@id/t1"/>
+
+        </RelativeLayout>
+
         <LinearLayout
-            android:orientation="vertical"
             android:id="@+id/waitForClassified"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center|center_vertical"
+            android:gravity="center"
+            android:orientation="vertical"
             android:visibility="gone">
 
             <ImageView
                 android:id="@+id/addToDateOrReceipt"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                card_view:srcCompat="@drawable/ic_assignment_black_24dp"
-                android:alpha="0.5"/>
+                android:alpha="0.5"
+                android:layout_gravity="center"
+                card_view:srcCompat="@drawable/ic_assignment_black_24dp" />
 
             <TextView
                 android:id="@+id/waitForClassifiedTv"
-                android:gravity="center"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"/>
+                android:gravity="center"
+                android:textSize="16sp"
+                tools:text="brak" />
 
         </LinearLayout>
 
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardQuestionnaire"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            card_view:cardBackgroundColor="@color/colorAccent"
-            card_view:cardCornerRadius="2dp"
-            card_view:cardElevation="2dp"
-            card_view:cardPreventCornerOverlap="false"
-            card_view:cardUseCompatPadding="true"
-            android:visibility="gone">
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center|center_vertical"
-                    android:padding="10dp">
-
-                    <TextView
-                        android:id="@+id/labelText2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_centerHorizontal="true"
-                        android:gravity="center"
-                        android:text="Dostępne jest badanie:"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvInfo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelText2"
-                        android:layout_centerInParent="true"
-                        android:layout_marginTop="10dp"
-                        android:gravity="center"
-                        android:text="wypełnij miesęczny test\n i wyślij lekarzowi !"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/art"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:background="@drawable/card_image2">
-
-                </RelativeLayout>
-
-            </LinearLayout>
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.CardView
-            android:id="@+id/cardInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            card_view:cardBackgroundColor="#8ABECB"
-            card_view:cardCornerRadius="2dp"
-            card_view:cardElevation="2dp"
-            card_view:cardPreventCornerOverlap="false"
-            card_view:cardUseCompatPadding="true"
-            android:visibility="gone">
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center|center_vertical"
-                    android:padding="10dp">
-
-                    <TextView
-                        android:id="@+id/labelText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:text="Nastęone badanie zostanie \naktywowane:"
-                        android:textColor="@android:color/white"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:id="@+id/tvDate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/labelText"
-                        android:layout_centerInParent="true"
-                        android:layout_marginTop="10dp"
-                        android:textColor="@android:color/white"
-                        android:textSize="20sp" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="end"
-                    android:background="@drawable/card_image2">
-
-                    <Button
-                        android:id="@+id/button"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:text="info"
-                        android:visibility="gone" />
-                </RelativeLayout>
-
-            </LinearLayout>
-        </android.support.v7.widget.CardView>
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/sent_ques_recycler_view"
+        <LinearLayout
+            android:id="@+id/contentQuest"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"
-            android:visibility="visible" >
+            android:orientation="vertical">
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardQuestionnaire"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                card_view:cardBackgroundColor="@color/colorAccent"
+                card_view:cardCornerRadius="2dp"
+                card_view:cardElevation="2dp"
+                card_view:cardPreventCornerOverlap="false"
+                card_view:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:layout_weight="1.5">
+
+                        <TextView
+                            android:id="@+id/labelText2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentTop="true"
+                            android:layout_centerHorizontal="true"
+                            android:gravity="center"
+                            android:text="Dostępne jest badanie:"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/tvInfo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/labelText2"
+                            android:layout_centerInParent="true"
+                            android:layout_marginTop="10dp"
+                            android:gravity="center"
+                            android:text="wypełnij miesęczny test\n i wyślij lekarzowi !"
+                            android:textColor="@android:color/white"
+                            android:textSize="20sp" />
+
+                    </RelativeLayout>
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitXY"
+                        android:layout_weight="0.5"
+                        android:src="@drawable/card_image2"/>
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+            <android.support.v7.widget.CardView
+                android:id="@+id/cardInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                card_view:cardBackgroundColor="#8ABECB"
+                card_view:cardCornerRadius="2dp"
+                card_view:cardElevation="2dp"
+                card_view:cardPreventCornerOverlap="false"
+                card_view:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <RelativeLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="8dp"
+                        android:layout_weight="1.5">
+
+                        <TextView
+                            android:id="@+id/labelText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="Nastęone badanie zostanie \naktywowane:"
+                            android:textColor="@android:color/white"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/tvDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_below="@id/labelText"
+                            android:layout_centerInParent="true"
+                            android:layout_marginTop="10dp"
+                            android:textColor="@android:color/white"
+                            android:textSize="20sp" />
+
+                    </RelativeLayout>
+
+                    <ImageView
+                        android:layout_width="100dp"
+                        android:layout_height="match_parent"
+                        android:scaleType="fitXY"
+                        android:layout_weight="0.5"
+                        android:src="@drawable/card_image2"
+                        android:contentDescription="img"/>
+
+                </LinearLayout>
+            </android.support.v7.widget.CardView>
+
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/sent_ques_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:visibility="visible">
 
             </android.support.v7.widget.RecyclerView>
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

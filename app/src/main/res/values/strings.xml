@@ -34,6 +34,8 @@
     <string name="title_wait_classified">Oczekiwanie na weryfikację \nLekarz musi ocenić twój wstępny test</string>
     <string name="title_discard_classified">Nie zostałeś/aś zakwalifikowany/a \ndo dalszeo etapu badańe</string>
     <string name="title_activity_login">Logowanie</string>
+    <string name="lost_connection">Oops, twoje połącznie z internetem zostało zerwane lub wystąpił problem z polączniem z serwerem</string>
+    <string name="lost_connection_refresh">przeciągnij palcem w dół ekranu aby spróbować ponownie załadować dane</string>
 
 
 </resources>

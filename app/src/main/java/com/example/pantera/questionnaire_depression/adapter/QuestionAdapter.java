@@ -22,6 +22,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Pantera on 2016-12-23.
  */
@@ -157,17 +160,15 @@ public class QuestionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         return list;
     }
 
-    private static class QuestionViewHolderItem extends RecyclerView.ViewHolder {
+    public class QuestionViewHolderItem extends RecyclerView.ViewHolder {
 
-        RadioGroup radioGroup;
-        TextView title;
-        CardView cardView;
+        @BindView(R.id.rv_item_radio_group) RadioGroup radioGroup;
+        @BindView(R.id.radio_group_title) TextView title;
+        @BindView(R.id.rv_question_card) CardView cardView;
 
         QuestionViewHolderItem(View itemView) {
             super(itemView);
-            radioGroup = (RadioGroup) itemView.findViewById(R.id.rv_item_radio_group);
-            title = (TextView) itemView.findViewById(R.id.radio_group_title);
-            cardView = (CardView) itemView.findViewById(R.id.rv_question_card);
+            ButterKnife.bind(this,itemView);
         }
     }
 }

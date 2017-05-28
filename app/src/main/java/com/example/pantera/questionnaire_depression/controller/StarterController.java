@@ -5,12 +5,9 @@ import android.util.Log;
 import com.example.pantera.questionnaire_depression.StarterActivity;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Question;
+import com.example.pantera.questionnaire_depression.model.Questionnaire;
 import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.List;
 
@@ -34,15 +31,16 @@ public class StarterController {
         this.restClient = restClient;
     }
 
-    public void onInit(StarterActivity starterActivity){
+    public void onInit(StarterActivity starterActivity) {
         this.starterActivity = starterActivity;
     }
-    public void onInit(StarterActivity.StartQuestionnaireFragment startQuestionnaireFragment){
+
+    public void onInit(StarterActivity.StartQuestionnaireFragment startQuestionnaireFragment) {
         this.startQuestionnaireFragment = startQuestionnaireFragment;
     }
 
 
-    public void onStop(){
+    public void onStop() {
         starterActivity = null;
         startQuestionnaireFragment = null;
     }
@@ -50,53 +48,50 @@ public class StarterController {
     //starterActivity
     public void sendStarterTest(final List<Integer> listAnswers) {
         starterActivity.showProgressDialog();
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("patientID", String.valueOf(sessionManager.getIdPatient()));
+        String patientId = String.valueOf(sessionManager.getUserDetails().getId());
+        Questionnaire questionnaire = new Questionnaire(patientId, listAnswers);
 
-        JSONArray answers = new JSONArray();
-        for (int i = 0; i < listAnswers.size(); i++) {
-            answers.put(i, listAnswers.get(i));
-        }
-        jsonObject.put("answers", answers);
-        Call<ResponseBody> call = restClient.get().sendAnswer(jsonObject);
+        Call<ResponseBody> call = restClient.get().sendAnswer(questionnaire);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-
-                if(response.isSuccessful()){
-                    sessionManager.updateValue(SessionManager.KEY_STARTER_TEST, true);
-                    starterActivity.sendOk();
-                }else {
-                    starterActivity.showError(response.message());
+                if(starterActivity != null) {
+                    if (response.isSuccessful()) {
+                        sessionManager.updateValue(SessionManager.KEY_STARTER_TEST, true);
+                        starterActivity.sendOk();
+                    } else {
+                        starterActivity.showError(response.message());
+                    }
+                    starterActivity.hideProgressDialog();
                 }
-                starterActivity.hideProgressDialog();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                starterActivity.hideProgressDialog();
-                starterActivity.showError(t.getLocalizedMessage());
+                if (starterActivity != null) {
+                    starterActivity.hideProgressDialog();
+                    starterActivity.showError(t.getLocalizedMessage());
+                }
             }
         });
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     //StartQuestionnaireFragment
-    public void loadStartQuestions(){
+    public void loadStartQuestions() {
         Call<List<Question>> call = restClient.get().questions("hads");
         call.enqueue(new Callback<List<Question>>() {
 
             @Override
             public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
 
-                if(response.isSuccessful()){
-                    startQuestionnaireFragment.successLoadData(response.body());
-                }else {
-                    startQuestionnaireFragment.showError("Wystąpił problem nie można załadować pytań ankiety");
+                if (response.isSuccessful()) {
+                    if (startQuestionnaireFragment != null) {
+                        startQuestionnaireFragment.successLoadData(response.body());
+                    }
+                } else {
+                    if (startQuestionnaireFragment != null) {
+                        startQuestionnaireFragment.showError("Wystąpił problem nie można załadować pytań ankiety");
+                    }
                 }
             }
 

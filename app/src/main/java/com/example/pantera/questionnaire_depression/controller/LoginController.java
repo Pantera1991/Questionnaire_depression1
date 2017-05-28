@@ -52,24 +52,26 @@ public class LoginController {
                 @Override
                 public void onResponse(Call<Patient> call, Response<Patient> response) {
                     patientCall = null;
-                    loginActivity.showProgress(false);
-                    if(response.isSuccessful()){
-                        String setCookie = response.headers().get("Set-Cookie");
-                        String stringPattern = "([A-Z]*\\=[0-9A-Z]*)";
-                        Pattern word = Pattern.compile(stringPattern);
-                        Matcher matcher = word.matcher(setCookie);
-                        String cookieValue = "";
-                        if (matcher.find()) {
-                            cookieValue = matcher.group(1);
-                        }
-                        Patient patient = response.body();
+                    if(loginActivity != null) {
+                        loginActivity.showProgress(false);
+                        if (response.isSuccessful()) {
+                            String setCookie = response.headers().get("Set-Cookie");
+                            String stringPattern = "([A-Z]*\\=[0-9A-Z]*)";
+                            Pattern word = Pattern.compile(stringPattern);
+                            Matcher matcher = word.matcher(setCookie);
+                            String cookieValue = "";
+                            if (matcher.find()) {
+                                cookieValue = matcher.group(1);
+                            }
+                            Patient patient = response.body();
 
-                        sessionManager.createLoginSession(patient, cookieValue);
-                        saveRefreshTokenFireBase(patient.getUser().getId());
-                        saveLastDateSendQuestion(patient.getId());
-                        loginActivity.loginOk(response.body());
-                    }else{
-                        loginActivity.showError(response.code());
+                            sessionManager.createLoginSession(patient, cookieValue);
+                            saveRefreshTokenFireBase(patient.getUser().getId());
+                            saveLastDateSendQuestion(patient.getId());
+                            loginActivity.loginOk(response.body());
+                        } else {
+                            loginActivity.showError(response.code());
+                        }
                     }
                 }
 
@@ -112,7 +114,7 @@ public class LoginController {
         Log.d(TAG+"SEND TOKEN", refreshedToken == null ? "nie ma tokena google": refreshedToken);
         //int id = sessionManager.getUserDetails().getUser().getId();
         if (!TextUtils.isEmpty(refreshedToken)) {
-            Call<ResponseBody> call = restClient.get().updateFirebaseToken(id, refreshedToken);
+            Call<ResponseBody> call = restClient.get().updateFireBaseToken(id, refreshedToken);
             call.enqueue(new Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -135,7 +137,7 @@ public class LoginController {
     public void updateUserData() {
         int idUser = sessionManager.getIdUser();
         if(idUser != -1){
-            Call<Patient> call = restClient.get().getDetalisPatient(idUser);
+            Call<Patient> call = restClient.get().getDetailsPatient(idUser);
             call.enqueue(new Callback<Patient>() {
                 @Override
                 public void onResponse(Call<Patient> call, Response<Patient> response) {

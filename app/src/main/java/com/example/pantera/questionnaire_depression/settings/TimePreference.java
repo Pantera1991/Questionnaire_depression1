@@ -19,7 +19,7 @@ import java.util.Locale;
  */
 
 public class TimePreference extends DialogPreference {
-    private int mHour = 0;
+    private int mHour = 15;
     private int mMinute = 0;
     private TimePicker picker = null;
 
@@ -39,7 +39,7 @@ public class TimePreference extends DialogPreference {
         setNegativeButtonText("Anuluj");
     }
 
-    private void setTime(int hour, int minute) {
+    public void setTime(int hour, int minute) {
         mHour = hour;
         mMinute = minute;
         String time = toTime(mHour, mMinute);
@@ -53,7 +53,7 @@ public class TimePreference extends DialogPreference {
     }
 
     private void updateSummary() {
-        String time = String.format("%02d", mHour) + ":" + String.format("%02d", mMinute);
+        String time = String.format(Locale.getDefault(),"%02d", mHour) + ":" + String.format(Locale.getDefault(),"%02d", mMinute);
         setSummary(time);
     }
 
@@ -122,7 +122,6 @@ public class TimePreference extends DialogPreference {
         setTime(currHour, currMinute);
         updateSummary();
     }
-
 
     public static Date toDate(String inTime) {
         try {

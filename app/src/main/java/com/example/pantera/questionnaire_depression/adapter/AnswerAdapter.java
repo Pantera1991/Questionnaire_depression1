@@ -18,6 +18,9 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by Pantera on 2016-12-27.
  */
@@ -41,13 +44,13 @@ public class AnswerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.rv_answer_item, parent, false);
-        return new MyViewHolder(itemView);
+        return new AnswerViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         final Answer answer = listOfAnswer.get(position);
-        MyViewHolder myHolder = (MyViewHolder) holder;
+        AnswerViewHolder myHolder = (AnswerViewHolder) holder;
         myHolder.diagnosis.setText(mContext.getString(R.string.diagnosis));
         String strPoints = answer.getSumOfPoints()+"p";
         myHolder.colorPoints.setText(strPoints);
@@ -68,16 +71,16 @@ public class AnswerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         return drawable;
     }
 
-    private static class MyViewHolder extends RecyclerView.ViewHolder {
+    public class AnswerViewHolder extends RecyclerView.ViewHolder {
 
-        private TextView diagnosis, diagnosisDescription, date, colorPoints;
+        @BindView(R.id.diagnosis_textview) TextView diagnosis;
+        @BindView(R.id.diagnosis_description_textview) TextView diagnosisDescription;
+        @BindView(R.id.date_textview) TextView date;
+        @BindView(R.id.color_points) TextView colorPoints;
 
-        MyViewHolder(View itemView) {
+        AnswerViewHolder(View itemView) {
             super(itemView);
-            diagnosis = (TextView) itemView.findViewById(R.id.diagnosis_textview);
-            diagnosisDescription = (TextView) itemView.findViewById(R.id.diagnosis_description_textview);
-            date = (TextView) itemView.findViewById(R.id.date_textview);
-            colorPoints = (TextView) itemView.findViewById(R.id.color_points);
+            ButterKnife.bind(this,itemView);
         }
     }
 }

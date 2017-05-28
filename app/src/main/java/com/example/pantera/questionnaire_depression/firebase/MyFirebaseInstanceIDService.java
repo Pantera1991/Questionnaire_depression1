@@ -2,6 +2,7 @@ package com.example.pantera.questionnaire_depression.firebase;
 
 import android.util.Log;
 
+import com.example.pantera.questionnaire_depression.QuestionnaireApplication;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -44,10 +45,10 @@ public class MyFirebaseInstanceIDService extends FirebaseInstanceIdService {
      */
     private void sendRegistrationToServer(String token) {
         // TODO: Implement this method to send token to your app server.
-        RestClient restClient = new RestClient(getApplicationContext());
-        SessionManager sessionManager = new SessionManager(getApplicationContext());
-        if(sessionManager.getUserDetails()!= null){
-            restClient.get().updateFirebaseToken(sessionManager.getUserDetails().getUser().getId(), token);
+        RestClient restClient = ((QuestionnaireApplication) getApplication()).getRestClient();
+        SessionManager sessionManager = ((QuestionnaireApplication) getApplication()).getSessionManager();
+        if(sessionManager!= null){
+            restClient.get().updateFireBaseToken(sessionManager.getIdUser(), token);
         }
 
     }

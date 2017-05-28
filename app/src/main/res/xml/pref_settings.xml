@@ -1,5 +1,5 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:theme="@style/AppTheme.NoActionBar">
+    android:theme="@style/AppTheme">
 <PreferenceCategory
     android:title="Powiadomienia">
     <!-- A 'parent' preference, which enables/disables child preferences (below)

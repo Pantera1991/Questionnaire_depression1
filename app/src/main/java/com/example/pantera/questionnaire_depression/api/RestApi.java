@@ -5,8 +5,7 @@ import com.example.pantera.questionnaire_depression.model.DateResponse;
 import com.example.pantera.questionnaire_depression.model.Doctor;
 import com.example.pantera.questionnaire_depression.model.Patient;
 import com.example.pantera.questionnaire_depression.model.Question;
-
-import org.json.JSONObject;
+import com.example.pantera.questionnaire_depression.model.Questionnaire;
 
 import java.util.List;
 
@@ -47,21 +46,17 @@ public interface RestApi {
 
     @GET("/questions/getdatelastsendquestionnaire/{patientId}")
     Call<DateResponse> getDateLastSendAnswer(@Path("patientId") int patientId);
-    @Headers({
-            "Content-Type: application/json"
-    })
-    @GET("/w/api.php?format=json&action=query&prop=extracts|info&inprop=url&exintro=&explaintext=&titles=Zaburzenia_depresyjne")
-    Call<ResponseBody> getWikiDefinition();
+
 
     @Headers({
             "Content-Type: application/json"
     })
     @POST("/patient/sendanswer")
-    Call<ResponseBody> sendAnswer(@Body JSONObject answer);
+    Call<ResponseBody> sendAnswer(@Body Questionnaire answer);
 
     @PUT("/patient/firebase_token/{idUser}/{token}")
-    Call<ResponseBody> updateFirebaseToken(@Path("idUser") int idUser, @Path("token") String token);
+    Call<ResponseBody> updateFireBaseToken(@Path("idUser") int idUser, @Path("token") String token);
 
     @GET("/patient/detalis/{idUser}")
-    Call<Patient> getDetalisPatient(@Path("idUser") int idUser);
+    Call<Patient> getDetailsPatient(@Path("idUser") int idUser);
 }

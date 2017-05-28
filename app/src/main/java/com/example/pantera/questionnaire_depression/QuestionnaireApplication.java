@@ -3,7 +3,9 @@ package com.example.pantera.questionnaire_depression;
 import android.app.Application;
 
 import com.example.pantera.questionnaire_depression.api.RestClient;
+import com.example.pantera.questionnaire_depression.api.WikiClient;
 import com.example.pantera.questionnaire_depression.controller.DoctorController;
+import com.example.pantera.questionnaire_depression.controller.InformationController;
 import com.example.pantera.questionnaire_depression.controller.LoginController;
 import com.example.pantera.questionnaire_depression.controller.QuestionController;
 import com.example.pantera.questionnaire_depression.controller.QuestionnaireController;
@@ -25,6 +27,7 @@ public class QuestionnaireApplication extends Application {
     private QuestionnaireController questionnaireController;
     private RestClient restClient;
     private SessionManager sessionManager;
+    private InformationController informationController;
 
     @Override
     public void onCreate() {
@@ -51,6 +54,7 @@ public class QuestionnaireApplication extends Application {
 
         // initInfoCard joda time
         JodaTimeAndroid.init(this);
+        WikiClient wikiClient = new WikiClient();
         restClient = new RestClient(this);
         sessionManager = new SessionManager(getSharedPreferences(SessionManager.PREF_NAME, MODE_PRIVATE));
         loginController = new LoginController(restClient, sessionManager);
@@ -58,6 +62,7 @@ public class QuestionnaireApplication extends Application {
         questionController = new QuestionController(restClient, sessionManager);
         doctorController = new DoctorController(restClient, sessionManager);
         questionnaireController = new QuestionnaireController(restClient, sessionManager);
+        informationController = new InformationController(wikiClient);
     }
 
     public LoginController getLoginController() {
@@ -82,6 +87,10 @@ public class QuestionnaireApplication extends Application {
 
     public SessionManager getSessionManager() {
         return sessionManager;
+    }
+
+    public InformationController getInformationController() {
+        return informationController;
     }
 
     public RestClient getRestClient() {

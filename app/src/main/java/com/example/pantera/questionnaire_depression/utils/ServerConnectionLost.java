@@ -18,7 +18,6 @@ public class ServerConnectionLost {
                         //do things
                         SessionManager sessionManager = new SessionManager(context);
                         sessionManager.logoutUser();
-                        //context.startActivity(new Intent(context, LoginActivity.class));
                         context.finish();
                     }
                 });

@@ -30,11 +30,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class QuestionActivity extends AppCompatActivity {
 
-    private RecyclerView mRecyclerView;
+    @BindView(R.id.question_recycler_view) RecyclerView mRecyclerView;
+    @BindView(R.id.question_progress) View mProgressView;
     private RecyclerView.Adapter mAdapter;
-    private View mProgressView;
     private SessionManager sessionManager;
     private QuestionController questionController;
     private ProgressDialog mDialog;
@@ -56,19 +59,16 @@ public class QuestionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
-
+        ButterKnife.bind(this);
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close_black_24dp);
+        }
         QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
         questionController = app.getQuestionController();
         sessionManager = app.getSessionManager();
 
-        mProgressView = findViewById(R.id.question_progress);
-        mRecyclerView = (RecyclerView) findViewById(R.id.question_recycler_view);
-        if (mRecyclerView != null) {
-            mRecyclerView.setHasFixedSize(true);
-        }
-
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(QuestionActivity.this);
+        mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(mLayoutManager);
         registerForContextMenu(mRecyclerView);
     }
@@ -106,6 +106,9 @@ public class QuestionActivity extends AppCompatActivity {
                 }
 
                 break;
+//            case android.R.id.home:
+//                onBackPressed();
+//                break;
 
         }
         return super.onOptionsItemSelected(item);
@@ -183,6 +186,7 @@ public class QuestionActivity extends AppCompatActivity {
         Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
     }
+
 
     public void successSendQuestionnaire(int answerId, float points){
         Intent data = getIntent();

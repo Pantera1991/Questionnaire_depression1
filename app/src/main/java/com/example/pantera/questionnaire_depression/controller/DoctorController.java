@@ -1,7 +1,5 @@
 package com.example.pantera.questionnaire_depression.controller;
 
-import android.util.Log;
-
 import com.example.pantera.questionnaire_depression.InfoAboutDoctorActivity;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Doctor;
@@ -40,21 +38,23 @@ public class DoctorController {
         call.enqueue(new Callback<Doctor>() {
             @Override
             public void onResponse(Call<Doctor> call, Response<Doctor> response) {
-                if(response.isSuccessful()){
-                    Doctor doctor = response.body();
-                    infoAboutDoctorActivity.successLoadDetails(doctor);
-                }else {
-                    infoAboutDoctorActivity.showError("Wystapił błąd nie udało sie załadować szczegółów");
+                if(infoAboutDoctorActivity != null){
+                    if(response.isSuccessful()){
+                        Doctor doctor = response.body();
+                        infoAboutDoctorActivity.successLoadDetails(doctor);
+                    }else {
+                        infoAboutDoctorActivity.showError("Wystapił błąd nie udało sie załadować szczegółów");
+                    }
+                    infoAboutDoctorActivity.showProgress(false);
                 }
-                infoAboutDoctorActivity.showProgress(false);
             }
 
             @Override
             public void onFailure(Call<Doctor> call, Throwable t) {
-                Log.d("callback",call.request().toString());
-                Log.d("informationError",t.getMessage());
-                infoAboutDoctorActivity.showProgress(false);
-                infoAboutDoctorActivity.showError(t.getLocalizedMessage());
+                if(infoAboutDoctorActivity != null){
+                    infoAboutDoctorActivity.showProgress(false);
+                    infoAboutDoctorActivity.showError(t.getLocalizedMessage());
+                }
             }
         });
     }

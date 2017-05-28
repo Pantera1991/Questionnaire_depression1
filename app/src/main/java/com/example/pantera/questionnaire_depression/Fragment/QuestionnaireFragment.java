@@ -2,12 +2,12 @@ package com.example.pantera.questionnaire_depression.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,24 +38,34 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
 /**
  * Created by Pantera on 2016-12-26.
  */
 
 public class QuestionnaireFragment extends Fragment {
 
-    private Context mContext;
-    private TextView mTvDate, mTvLabel,mTvWaitForClassified;
-    private MainActivity mainActivity;
-    private CardView cardInfo, cardQuestionnaire;
-    private LinearLayout mContentLayout, mWaitingContent;
-    private View mProgressView;
 
-    private RecyclerView mRecyclerView;
+    @BindView(R.id.tvDate) TextView mTvDate;
+    @BindView(R.id.labelText) TextView mTvLabel;
+    @BindView(R.id.waitForClassifiedTv) TextView mTvWaitForClassified;
+    @BindView(R.id.cardInfo) CardView cardInfo;
+    @BindView(R.id.cardQuestionnaire) CardView cardQuestionnaire;
+    @BindView(R.id.contentQuest) LinearLayout mContentLayout;
+    @BindView(R.id.waitForClassified) LinearLayout mWaitingContent;
+    @BindView(R.id.sent_ques_recycler_view) RecyclerView mRecyclerView;
+    @BindView(R.id.questionnaireRefreshLayout) SwipeRefreshLayout questionnaireRefreshLayout;
+    @BindView(R.id.errorConnectionView) View errorConnectionView;
+
+    private MainActivity mainActivity;
     private RecyclerView.Adapter mAdapter;
     private boolean disableFab = true;
     private SessionManager sessionManager;
     private QuestionnaireController questionnaireController;
+    private Unbinder unbinder;
 
     @Override
     public void onStart() {
@@ -73,6 +83,7 @@ public class QuestionnaireFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = (MainActivity) getContext();
         QuestionnaireApplication app = ((QuestionnaireApplication) getActivity().getApplication());
         questionnaireController = app.getQuestionnaireController();
         sessionManager = app.getSessionManager();
@@ -82,19 +93,13 @@ public class QuestionnaireFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_questionnarie, container, false);
-        mContext = rootView.getContext();
-        mainActivity = (MainActivity) rootView.getContext();
-        mTvDate = (TextView) rootView.findViewById(R.id.tvDate);
-        mTvLabel = (TextView) rootView.findViewById(R.id.labelText);
-        cardInfo = (CardView) rootView.findViewById(R.id.cardInfo);
-        cardQuestionnaire = (CardView) rootView.findViewById(R.id.cardQuestionnaire);
-        mContentLayout = (LinearLayout) rootView.findViewById(R.id.contentQuest);
-        mWaitingContent = (LinearLayout) rootView.findViewById(R.id.waitForClassified);
-        mTvWaitForClassified = (TextView) rootView.findViewById(R.id.waitForClassifiedTv);
-        mProgressView = rootView.findViewById(R.id.ques_progress);
+        unbinder = ButterKnife.bind(this,rootView);
+        return rootView;
+    }
 
-        //lista wyslanych
-        mRecyclerView = (RecyclerView) rootView.findViewById(R.id.sent_ques_recycler_view);
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         if (!disableFab) {
             mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -126,12 +131,22 @@ public class QuestionnaireFragment extends Fragment {
             mRecyclerView.setHasFixedSize(true);
         }
         // use a linear layout manager
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(rootView.getContext());
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
+        questionnaireRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
 
-        return rootView;
+                questionnaireController.loadQuestionnaire();
+            }
+        });
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unbinder.unbind();
+    }
 
     public void setupView() {
 
@@ -196,15 +211,7 @@ public class QuestionnaireFragment extends Fragment {
             }
         });
 
-        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-        mProgressView.animate().setDuration(shortAnimTime).alpha(
-                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            }
-        });
-
+        questionnaireRefreshLayout.setRefreshing(show);
     }
 
     @Override
@@ -230,11 +237,22 @@ public class QuestionnaireFragment extends Fragment {
     }
 
     public void successLoadQuestionnaire(List<Answer> list) {
-        mAdapter = new AnswerAdapter(list, mContext);
+        errorConnectionView.setVisibility(View.GONE);
+        mAdapter = new AnswerAdapter(list, getContext());
         mRecyclerView.setAdapter(mAdapter);
+        questionnaireRefreshLayout.setRefreshing(false);
     }
 
     public void showError(String msg) {
+        questionnaireRefreshLayout.setRefreshing(false);
+        Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
+    }
+
+    public void showErrorConnection(String msg) {
+        questionnaireRefreshLayout.setRefreshing(false);
+        errorConnectionView.setVisibility(View.VISIBLE);
+        mainActivity.setVisibilityFab(View.GONE);
         Snackbar.make(mRecyclerView, msg, Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show();
     }

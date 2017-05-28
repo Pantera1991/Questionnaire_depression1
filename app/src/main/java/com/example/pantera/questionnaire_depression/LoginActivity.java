@@ -12,30 +12,31 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.controller.LoginController;
 import com.example.pantera.questionnaire_depression.model.Patient;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+
 /**
  * A login screen that offers login via email/password.
  */
 public class LoginActivity extends AppCompatActivity {
 
-    private static final String TAG = LoginActivity.class.getSimpleName();
-    private EditText mLoginView;
-    private EditText mPasswordView;
-    private TextInputLayout textInputLayoutLogin;
-    private TextInputLayout textInputLayoutPassword;
-    private View mProgressView;
-    private View mLoginFormView;
+    @BindView(R.id.login) EditText mLoginView;
+    @BindView(R.id.password) EditText mPasswordView;
+    @BindView(R.id.textInputLayoutLogin) TextInputLayout textInputLayoutLogin;
+    @BindView(R.id.textInputLayoutPassword) TextInputLayout textInputLayoutPassword;
+    @BindView(R.id.login_progress) View mProgressView;
+    @BindView(R.id.login_form) View mLoginFormView;
     private LoginController loginController;
 
     @Override
@@ -54,46 +55,39 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        ButterKnife.bind(this);
         QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
         loginController = app.getLoginController();
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        // Set up the login form.
-        mLoginView = (EditText) findViewById(R.id.login);
-        mPasswordView = (EditText) findViewById(R.id.password);
-        textInputLayoutLogin = (TextInputLayout) findViewById(R.id.textInputLayoutLogin);
-        textInputLayoutPassword = (TextInputLayout) findViewById(R.id.textInputLayoutPassword);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    if (isOnline()) {
-                        hideKeyboard();
-                        attemptLogin();
-                        return true;
-                    } else {
-                        Snackbar.make(textView, getResources().getString(R.string.offline_network), Snackbar.LENGTH_LONG)
-                                .setAction("Action", null).show();
-                        return false;
-                    }
-                }
+    }
+
+    @OnClick(R.id.email_sign_in_button)
+    public void logIn(){
+        if (isOnline()) {
+            attemptLogin();
+        }else{
+            Snackbar.make(mPasswordView, getResources().getString(R.string.offline_network), Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
+        }
+    }
+
+    @OnEditorAction(R.id.password)
+    public boolean editorAction(TextView textView, int id){
+        if (id == R.id.login || id == EditorInfo.IME_NULL) {
+            if (isOnline()) {
+                hideKeyboard();
+                attemptLogin();
+                return true;
+            } else {
+                Snackbar.make(textView, getResources().getString(R.string.offline_network), Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
                 return false;
             }
-        });
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
-
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
+        }
+        return false;
     }
 
     public void hideKeyboard() {

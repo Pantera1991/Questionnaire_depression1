@@ -18,6 +18,7 @@ import retrofit2.Response;
  */
 
 public class QuestionnaireController {
+    private static final String TAG = QuestionnaireController.class.getSimpleName();
     private QuestionnaireFragment questionnaireFragment;
     private RestClient restClient;
     private SessionManager sessionManager;
@@ -44,21 +45,23 @@ public class QuestionnaireController {
             @Override
             public void onResponse(Call<List<Answer>> call, Response<List<Answer>> response) {
                 Log.d("status", String.valueOf(response.code()));
-                if(response.isSuccessful()){
-                    questionnaireFragment.successLoadQuestionnaire(response.body());
-                    questionnaireFragment.setupView();
-                }else {
-                    questionnaireFragment.showError("Nie można załądować listy ankiet");
+                if(questionnaireFragment != null) {
+                    if (response.isSuccessful()) {
+                        questionnaireFragment.successLoadQuestionnaire(response.body());
+                        questionnaireFragment.setupView();
+                    } else {
+                        questionnaireFragment.showError("Nie można załądować listy ankiet");
+                    }
+                    questionnaireFragment.showProgress(false);
                 }
-                questionnaireFragment.showProgress(false);
             }
 
             @Override
             public void onFailure(Call<List<Answer>> call, Throwable t) {
-                questionnaireFragment.showError(t.getLocalizedMessage());
-                //ServerConnectionLost.returnToLoginActivity(getActivity());
-                questionnaireFragment.showProgress(false);
-
+                if (questionnaireFragment != null){
+                    questionnaireFragment.showErrorConnection(t.getLocalizedMessage());
+                    questionnaireFragment.showProgress(false);
+                }
             }
         });
     }

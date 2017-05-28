@@ -8,14 +8,12 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 public class AlarmReceiver extends BroadcastReceiver {
-    public AlarmReceiver() {
-    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         int mNotificationId = 1001;
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.mipmap.ic_launcher2)
                 .setContentTitle("Dostępne jest badanie")
                 .setContentText("Wypełnij miesęczny test i wyślij lekarzowi !")
                 .setAutoCancel(true)
@@ -24,6 +22,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         PendingIntent contentIntent = PendingIntent.getActivity(context, MainActivity.SEND_QUESTIONNAIRE_REQUEST,
                 new Intent(context, MainActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
         mBuilder.setContentIntent(contentIntent);
 
         NotificationManager mNotifyMgr =
@@ -31,4 +30,5 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         mNotifyMgr.notify(mNotificationId, mBuilder.build());
     }
+
 }

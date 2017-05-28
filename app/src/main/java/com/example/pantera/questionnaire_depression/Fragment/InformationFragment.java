@@ -2,39 +2,35 @@ package com.example.pantera.questionnaire_depression.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.pantera.questionnaire_depression.QuestionnaireApplication;
 import com.example.pantera.questionnaire_depression.R;
-import com.example.pantera.questionnaire_depression.api.RestApi;
+import com.example.pantera.questionnaire_depression.controller.InformationController;
 import com.example.pantera.questionnaire_depression.utils.Diagnosis;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 
 /**
  * Created by Pantera on 2016-12-26.
@@ -42,94 +38,49 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class InformationFragment extends Fragment {
 
-    private static final String TAG = "SentQuestionFragment";
-    private Context mContext;
-    private TextView mTvWiki;
-    private Button btnWiki;
-    private View mProgressView;
-    private View mLayoutRecyclerView;
+    @BindView(R.id.tv_wiki) TextView mTvWiki;
+    @BindView(R.id.btnWiki) Button btnWiki;
+    @BindView(R.id.sent_ques_progress) View mProgressView;
+    @BindView(R.id.layout_rv_sent) View mLayoutRecyclerView;
     private View rootView;
+    private Unbinder unbinder;
+    private InformationController informationController;
 
     @Override
     public void onStart() {
         super.onStart();
-        initWiki();
+        informationController.onInit(this);
+        informationController.initWiki();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        informationController = ((QuestionnaireApplication) getActivity().getApplication()).getInformationController();
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_information, container, false);
-        mContext = rootView.getContext();
-
-
-        mProgressView = rootView.findViewById(R.id.sent_ques_progress);
-        mLayoutRecyclerView = rootView.findViewById(R.id.layout_rv_sent);
-        Button buttonInfo = (Button) rootView.findViewById(R.id.btnInfo);
-        buttonInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog();
-            }
-        });
-
-        btnWiki = (Button) rootView.findViewById(R.id.btnWiki);
-        mTvWiki = (TextView) rootView.findViewById(R.id.tv_wiki);
+        unbinder = ButterKnife.bind(this, rootView);
         return rootView;
     }
 
-    private void initWiki() {
-        showProgress(true);
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://pl.wikipedia.org")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        RestApi service = retrofit.create(RestApi.class);
-        service.getWikiDefinition().enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                try {
-                    if (response.isSuccessful()) {
-                        String jsonResponse = response.body().string();
-                        JSONObject root = new JSONObject(jsonResponse);
-                        final JSONObject pages = root.getJSONObject("query").getJSONObject("pages").getJSONObject("25450");
-                        mTvWiki.setText(Html.fromHtml("<h2>" + pages.getString("title") + "</h2>" + pages.getString("extract")));
-                        btnWiki.setOnClickListener(new View.OnClickListener() {
-                            public void onClick(View v) {
-                                Intent intent = new Intent();
-                                intent.setAction(Intent.ACTION_VIEW);
-                                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                                try {
-                                    intent.setData(Uri.parse(pages.getString("fullurl")));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                startActivity(intent);
-                            }
-                        });
-                        showProgress(false);
-                    } else {
-                        Log.d("json", response.message());
-                        showProgress(false);
-                    }
-                } catch (JSONException | IOException e) {
-                    e.printStackTrace();
-                    showProgress(false);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Log.e(TAG, t.toString());
-                Log.d("callback", call.request().toString());
-                showProgress(false);
-            }
-        });
+    @Override
+    public void onStop() {
+        super.onStop();
+        informationController.onStop();
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unbinder.unbind();
+    }
 
-    private void dialog() {
+    @OnClick(R.id.btnInfo)
+    public void dialog() {
         LayoutInflater inflater = getLayoutInflater(Bundle.EMPTY);
         View layout = inflater.inflate(R.layout.dialog_info_diagnosis, (ViewGroup) rootView.findViewById(R.id.root_dialog_layout));
         TextView t1 = (TextView) layout.findViewById(R.id.dialog_diagnosis_1);
@@ -146,7 +97,7 @@ public class InformationFragment extends Fragment {
         t4.setCompoundDrawablesRelativeWithIntrinsicBounds(generateShape(Diagnosis.getColor((50))), null, null, null);
 
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Rodzaje depreji")
                 .setView(layout)
                 .setCancelable(false)
@@ -156,13 +107,13 @@ public class InformationFragment extends Fragment {
     }
 
     private Drawable generateShape(int color) {
-        Drawable drawable = ContextCompat.getDrawable(mContext, R.drawable.circles);
-        drawable.setColorFilter(ContextCompat.getColor(mContext, color), PorterDuff.Mode.SRC_ATOP);
+        Drawable drawable = ContextCompat.getDrawable(getContext(), R.drawable.circles);
+        drawable.setColorFilter(ContextCompat.getColor(getContext(), color), PorterDuff.Mode.SRC_ATOP);
         return drawable;
     }
 
 
-    private void showProgress(final boolean show) {
+    public void showProgress(final boolean show) {
 
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
@@ -183,6 +134,32 @@ public class InformationFragment extends Fragment {
                 mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
+    }
 
+    public void successLoadWiki(String jsonResponse){
+
+        JsonObject jsonObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
+
+        final JsonObject pages = jsonObject.getAsJsonObject("query").getAsJsonObject("pages").getAsJsonObject("25450");
+        if (Build.VERSION.SDK_INT >= 24) {
+            mTvWiki.setText(Html.fromHtml("<h2>" + pages.get("title").toString() + "</h2>" + pages.get("extract").toString(), Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            mTvWiki.setText(Html.fromHtml("<h2>" + pages.get("title").toString() + "</h2>" + pages.get("extract").toString()));
+        }
+
+        btnWiki.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                intent.setData(Uri.parse(pages.get("fullurl").toString()));
+                startActivity(intent);
+            }
+        });
+    }
+
+    public void showError(String msg) {
+        showProgress(false);
+        Snackbar.make(mLayoutRecyclerView,msg,Snackbar.LENGTH_LONG).show();
     }
 }

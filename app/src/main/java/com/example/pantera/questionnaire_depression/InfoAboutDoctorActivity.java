@@ -11,20 +11,23 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.pantera.questionnaire_depression.controller.DoctorController;
 import com.example.pantera.questionnaire_depression.model.Doctor;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class InfoAboutDoctorActivity extends AppCompatActivity {
     private DoctorController doctorController;
-    private TextView email;
-    private TextView phone;
-    private CollapsingToolbarLayout collapsingToolbarLayout;
-    private View mProgressView;
-    private View mContentView;
-
+    @BindView(R.id.tvNumber2) TextView email;
+    @BindView(R.id.tvNumber1) TextView phone;
+    @BindView(R.id.collapsingToolbarLayoutInfo) CollapsingToolbarLayout collapsingToolbarLayout;
+    @BindView(R.id.doctor_info__progress) View mProgressView;
+    @BindView(R.id.doctor_info__content) View mContentView;
+    @BindView(R.id.toolbarInfo) Toolbar toolbar;
 
     @Override
     protected void onStart() {
@@ -43,33 +46,26 @@ public class InfoAboutDoctorActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_info_about_doctor);
-        doctorController = ((QuestionnaireApplication) getApplication()).getDoctorController();
-
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbarInfo);
+        ButterKnife.bind(this);
         setSupportActionBar(toolbar);
+
+
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null){
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        mProgressView = findViewById(R.id.doctor_info__progress);
-        mContentView = findViewById(R.id.doctor_info__content);
-        collapsingToolbarLayout = (CollapsingToolbarLayout) findViewById(R.id.collapsingToolbarLayoutInfo);
         collapsingToolbarLayout.setTitle("");
-        email = (TextView) findViewById(R.id.tvNumber2);
-        phone = (TextView) findViewById(R.id.tvNumber1);
+        doctorController = ((QuestionnaireApplication) getApplication()).getDoctorController();
+    }
 
-        ImageButton imageButton = (ImageButton) findViewById(R.id.smsButton1);
-        imageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent smsIntent = new Intent(Intent.ACTION_SENDTO);
-                smsIntent.addCategory(Intent.CATEGORY_DEFAULT);
-                smsIntent.setType("vnd.android-dir/mms-sms");
-                smsIntent.setData(Uri.parse("sms:" + phone.getText()));
-                startActivity(smsIntent);
-            }
-        });
+    @OnClick(R.id.smsButton1)
+    public void smsButtonAction(){
+        Intent smsIntent = new Intent(Intent.ACTION_SENDTO);
+        smsIntent.addCategory(Intent.CATEGORY_DEFAULT);
+        smsIntent.setType("vnd.android-dir/mms-sms");
+        smsIntent.setData(Uri.parse("sms:" + phone.getText()));
+        startActivity(smsIntent);
     }
 
     public void showProgress(final boolean show) {

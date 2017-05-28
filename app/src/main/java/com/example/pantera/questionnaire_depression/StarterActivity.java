@@ -2,10 +2,10 @@ package com.example.pantera.questionnaire_depression;
 
 import android.animation.ArgbEvaluator;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -32,13 +32,18 @@ import com.example.pantera.questionnaire_depression.utils.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.BindViews;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+
 public class StarterActivity extends AppCompatActivity {
 
-    private ViewPager mViewPager;
-    private ImageButton mNextBtn;
-    private Button mFinishBtn;
-    private ImageView[] indicators;
-
+    @BindView(R.id.container) ViewPager mViewPager;
+    @BindView(R.id.intro_btn_next) ImageButton mNextBtn;
+    @BindView(R.id.intro_btn_finish) Button mFinishBtn;
+    @BindViews({R.id.intro_indicator_0, R.id.intro_indicator_1}) ImageView[] indicators;
     private int page = 0;
     private StarterController starterController;
     private ProgressDialog mDialog;
@@ -59,33 +64,20 @@ public class StarterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_starter);
-
+        ButterKnife.bind(this);
         QuestionnaireApplication app = ((QuestionnaireApplication) getApplication());
         starterController = app.getStarterController();
-
-
-        ImageView zero = (ImageView) findViewById(R.id.intro_indicator_0);
-        ImageView one = (ImageView) findViewById(R.id.intro_indicator_1);
-
-        indicators = new ImageView[]{zero, one};
 
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         SectionsPagerAdapter mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
-        mNextBtn = (ImageButton) findViewById(R.id.intro_btn_next);
-        mFinishBtn = (Button) findViewById(R.id.intro_btn_finish);
-
         // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.container);
         mViewPager.setAdapter(mSectionsPagerAdapter);
         mViewPager.setCurrentItem(page);
         updateIndicators(page);
 
 
         final int color1 = ContextCompat.getColor(this, R.color.colorPrimaryDark1);
-
-
         final ArgbEvaluator evaluator = new ArgbEvaluator();
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -116,46 +108,40 @@ public class StarterActivity extends AppCompatActivity {
             public void onPageScrollStateChanged(int state) {
             }
         });
+    }
 
-        mNextBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                page += 1;
-                mViewPager.setCurrentItem(page, true);
-            }
-        });
+    @OnClick(R.id.intro_btn_next)
+    public void nextButton(View view){
+        page += 1;
+        mViewPager.setCurrentItem(page, true);
+    }
 
-        mFinishBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Fragment f = getActiveFragment(mViewPager, 1);
-                if (f instanceof StartQuestionnaireFragment) {
-                    StartQuestionnaireFragment sqf = (StartQuestionnaireFragment) f;
-                    QuestionAdapter mAdapter = (QuestionAdapter) sqf.getAdapter();
-                    List<Integer> list = mAdapter.checkSelectedAllQuestion();
-                    if (list.size() > 0) {
-                        String msg = "Nie zaznaczyłeś/aś wszystkich pytań \n" + list.toString().replaceAll("[\\[*\\]]", "");
-                        String title = "Nie można wysłać ankiety !";
-                        showDialog(msg, title);
-                    } else {
-                        List<Integer> listAnswers = new ArrayList<>();
-                        int size = mAdapter.getItemCount() * 4;
-                        float sum = 0;
-                        for (int i = 0; i < size; i++) {
-                            Question q = mAdapter.getItem(i);
-                            if (q.getSelectOption()) {
-                                sum += q.getPoints();
-                                listAnswers.add(q.getId());
-                            }
-                        }
-                        showSendDialog(sum, listAnswers);
-                        Log.d("sum", String.valueOf(sum));
+    @OnClick(R.id.intro_btn_finish)
+    public void finishButton(){
+        Fragment f = getActiveFragment(mViewPager, 1);
+        if (f instanceof StartQuestionnaireFragment) {
+            StartQuestionnaireFragment sqf = (StartQuestionnaireFragment) f;
+            QuestionAdapter mAdapter = (QuestionAdapter) sqf.getAdapter();
+            List<Integer> list = mAdapter.checkSelectedAllQuestion();
+            if (list.size() > 0) {
+                String msg = "Nie zaznaczyłeś/aś wszystkich pytań \n" + list.toString().replaceAll("[\\[*\\]]", "");
+                String title = "Nie można wysłać ankiety !";
+                showDialog(msg, title);
+            } else {
+                List<Integer> listAnswers = new ArrayList<>();
+                int size = mAdapter.getItemCount() * 4;
+                float sum = 0;
+                for (int i = 0; i < size; i++) {
+                    Question q = mAdapter.getItem(i);
+                    if (q.getSelectOption()) {
+                        sum += q.getPoints();
+                        listAnswers.add(q.getId());
                     }
                 }
-
+                showSendDialog(sum, listAnswers);
+                Log.d("sum", String.valueOf(sum));
             }
-        });
+        }
     }
 
     public Fragment getActiveFragment(ViewPager container, int position) {
@@ -248,11 +234,11 @@ public class StarterActivity extends AppCompatActivity {
     public static class StartQuestionnaireFragment extends Fragment {
 
         private static final String ARG_SECTION_NUMBER = "section_number";
-        private RecyclerView mRecyclerView;
+        @BindView(R.id.starter_questions_recycler_view) RecyclerView mRecyclerView;
         private RecyclerView.Adapter mAdapter;
-        private Context mContext;
         private SessionManager sessionManager;
         private StarterController starterController;
+        private Unbinder unbinder;
 
         @Override
         public void onStart() {
@@ -276,28 +262,34 @@ public class StarterActivity extends AppCompatActivity {
         }
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_starter_questions, container, false);
-            mContext = rootView.getContext();
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
             QuestionnaireApplication app = ((QuestionnaireApplication)getActivity().getApplication());
             starterController = app.getStarterController();
             sessionManager = app.getSessionManager();
+        }
 
-            mRecyclerView = (RecyclerView) rootView.findViewById(R.id.starter_questions_recycler_view);
-            if (mRecyclerView != null) {
-                mRecyclerView.setHasFixedSize(true);
-            }
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            View rootView = inflater.inflate(R.layout.fragment_starter_questions, container, false);
+            unbinder = ButterKnife.bind(this,rootView);
 
-            RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(mContext);
+            RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+            mRecyclerView.setHasFixedSize(true);
             mRecyclerView.setLayoutManager(mLayoutManager);
             registerForContextMenu(mRecyclerView);
             return rootView;
         }
 
+        @Override
+        public void onDestroy() {
+            super.onDestroy();
+            unbinder.unbind();
+        }
 
         public void successLoadData(List<Question> questionList) {
-            mAdapter = new QuestionAdapter(questionList, mContext, sessionManager);
+            mAdapter = new QuestionAdapter(questionList, getContext(), sessionManager);
             mRecyclerView.setAdapter(mAdapter);
         }
 

@@ -5,12 +5,8 @@ import android.util.Log;
 import com.example.pantera.questionnaire_depression.QuestionActivity;
 import com.example.pantera.questionnaire_depression.api.RestClient;
 import com.example.pantera.questionnaire_depression.model.Question;
-import com.example.pantera.questionnaire_depression.utils.ServerConnectionLost;
+import com.example.pantera.questionnaire_depression.model.Questionnaire;
 import com.example.pantera.questionnaire_depression.utils.SessionManager;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,15 +30,15 @@ public class QuestionController {
         this.restClient = restClient;
     }
 
-    public void onInit(QuestionActivity questionActivity){
+    public void onInit(QuestionActivity questionActivity) {
         this.questionActivity = questionActivity;
     }
 
-    public void onStop(){
+    public void onStop() {
         questionActivity = null;
     }
 
-    public void loadQuestions(){
+    public void loadQuestions() {
         questionActivity.showProgress(true);
         Call<List<Question>> call = restClient.get().questions("becka");
 
@@ -51,64 +47,65 @@ public class QuestionController {
             @Override
             public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
                 Log.d("status question", String.valueOf(response.code()));
-                if(response.isSuccessful()){
-                    questionActivity.loadQuestionsSuccess(response.body());
-                    questionActivity.showProgress(false);
-                }else {
-                    questionActivity.showProgress(false);
-                    questionActivity.showError("Wystaąpił problem z załadowaniem pytań");
+                if (questionActivity != null) {
+                    if (response.isSuccessful()) {
+                        questionActivity.loadQuestionsSuccess(response.body());
+                        questionActivity.showProgress(false);
+                    } else {
+                        questionActivity.showProgress(false);
+                        questionActivity.showError("Wystaąpił problem z załadowaniem pytań");
+                    }
                 }
-
             }
 
             @Override
             public void onFailure(Call<List<Question>> call, Throwable t) {
-                questionActivity.showProgress(false);
-                Log.d("questions error ", t.getMessage());
-                ServerConnectionLost.returnToLoginActivity(questionActivity);
+                if (questionActivity != null) {
+                    questionActivity.showProgress(false);
+                    Log.d("questions error ", t.getMessage());
+                    //ServerConnectionLost.returnToLoginActivity(questionActivity);
+                }
             }
         });
     }
 
-    public void sendQuestionnaire(List<Integer> listAnswers, final float points){
+    public void sendQuestionnaire(List<Integer> listAnswers, final float points) {
         questionActivity.showProgressDialog();
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("patientID", String.valueOf(sessionManager.getUserDetails().getId()));
+        String patientId = String.valueOf(sessionManager.getUserDetails().getId());
 
-        JSONArray answers = new JSONArray();
-        for (int i = 0; i < listAnswers.size(); i++) {
-            answers.put(i, listAnswers.get(i));
-        }
-        jsonObject.put("answers", answers);
-        Call<ResponseBody> call = restClient.get().sendAnswer(jsonObject);
+        Questionnaire questionnaire = new Questionnaire(patientId, listAnswers);
+
+        Call<ResponseBody> call = restClient.get().sendAnswer(questionnaire);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if(response.isSuccessful()){
-                    questionActivity.hideProgressDialog();
-                    try {
-                        int answerId = Integer.parseInt(response.body().string());
-                        questionActivity.successSendQuestionnaire(answerId, points);
-                    } catch (IOException e) {
-                        questionActivity.showError(response.message());
+                if (response.isSuccessful()) {
+                    if (questionActivity != null) {
+                        questionActivity.hideProgressDialog();
+                        try {
+                            int answerId = Integer.parseInt(response.body().string());
+                            questionActivity.successSendQuestionnaire(answerId, points);
+                        } catch (IOException e) {
+                            questionActivity.showError(response.message());
+                        }
                     }
-                }else{
-                    questionActivity.hideProgressDialog();
-                    questionActivity.showError("Nie można wysłać ankiety");
+
+                } else {
+                    if (questionActivity != null) {
+                        questionActivity.hideProgressDialog();
+                        questionActivity.showError("Nie można wysłać ankiety");
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                questionActivity.hideProgressDialog();
-                questionActivity.showError("Wystaąpił problem z załadowaniem pytań");
+                if (questionActivity != null) {
+                    questionActivity.hideProgressDialog();
+                    questionActivity.showError("Wystaąpił problem z załadowaniem pytań");
+                }
             }
         });
 
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 }
