@@ -1,6 +1,7 @@
 package com.example.pantera.questionnaire_depression;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.annotation.NonNull;
@@ -34,7 +35,6 @@ public class MainActivity extends AppCompatActivity
     private TextView mHeaderName;
     private TextView mHeaderUsername;
     private SessionManager sessionManager;
-    private Toolbar toolbar;
     private FloatingActionButton fab;
     private NotifyManager notifyManager;
 
@@ -59,8 +59,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Ankiety do wypełnienia");
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -96,8 +95,12 @@ public class MainActivity extends AppCompatActivity
 
 
         //initInfoCard first select
-        navigationView.setCheckedItem(R.id.nav_ques_fill);
-        navigationView.getMenu().performIdentifierAction(R.id.nav_ques_fill, 0);
+        if(savedInstanceState == null){
+            MenuItem item = navigationView.getMenu().findItem(R.id.nav_ques_fill);
+            item.setChecked(true);
+            onNavigationItemSelected(item);
+        }
+
 
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         if(refreshedToken == null){
@@ -109,6 +112,11 @@ public class MainActivity extends AppCompatActivity
         notifyManager = new NotifyManager(this);
     }
 
+
+    public void openBrowser(String url){
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(intent);
+    }
 
     public void setVisibilityFab(int visibility) {
         if (visibility == View.GONE || visibility == View.INVISIBLE) {
@@ -158,7 +166,6 @@ public class MainActivity extends AppCompatActivity
         FragmentManager manager = getSupportFragmentManager();
         switch (id) {
             case R.id.nav_ques_fill:
-                toolbar.setTitle("Ankiety");
                 QuestionnaireFragment toFillFragment = new QuestionnaireFragment();
                 manager.beginTransaction()
                         .add(toFillFragment, "Ankiety")
@@ -168,7 +175,6 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 break;
             case R.id.nav_ques_to_send:
-                toolbar.setTitle("Informacje");
                 setVisibilityFab(View.GONE);
                 InformationFragment toSentFragment = new InformationFragment();
                 manager.beginTransaction()
@@ -184,7 +190,6 @@ public class MainActivity extends AppCompatActivity
                 item.setCheckable(false);
                 break;
             case R.id.nav_logout:
-
                 notifyManager.onStop();
                 sessionManager.logoutUser();
                 startActivity(new Intent(this, LoginActivity.class));

@@ -36,8 +36,8 @@ public class NotifyManager {
         Log.d("settings val time: ",timeToNotify);
         if(notifyEnabled){
             int[] time = stringTimeToIntArray(timeToNotify);
-           //DateTime dateTime = new DateTime().withHourOfDay(time[0]).withMinuteOfHour(time[1]).withSecondOfMinute(0).plusMonths(1);
-            DateTime dateTime = new DateTime().plusMinutes(1);
+            DateTime dateTime = new DateTime().withHourOfDay(time[0]).withMinuteOfHour(time[1]).withSecondOfMinute(0).plusMonths(1);
+            //DateTime dateTime = new DateTime().plusMinutes(1);
 
             Intent intent = new Intent(context, AlarmReceiver.class);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_REQUEST, intent, 0);
@@ -52,7 +52,9 @@ public class NotifyManager {
         Intent intent = new Intent(context, AlarmReceiver.class);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(ALARM_SERVICE);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, ALARM_REQUEST, intent, PendingIntent.FLAG_NO_CREATE);
-        alarmManager.cancel(pendingIntent);
+        if(pendingIntent != null){
+            alarmManager.cancel(pendingIntent);
+        }
     }
 
     private int[] stringTimeToIntArray(String time){

@@ -83,7 +83,11 @@ public class QuestionnaireFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainActivity = (MainActivity) getContext();
+        mainActivity = (MainActivity) getActivity();
+
+        if(mainActivity.getSupportActionBar()!= null){
+            mainActivity.getSupportActionBar().setTitle("Ankiety");
+        }
         QuestionnaireApplication app = ((QuestionnaireApplication) getActivity().getApplication());
         questionnaireController = app.getQuestionnaireController();
         sessionManager = app.getSessionManager();
@@ -143,8 +147,9 @@ public class QuestionnaireFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
+        questionnaireRefreshLayout.setRefreshing(false);
         unbinder.unbind();
     }
 

@@ -2,10 +2,8 @@ package com.example.pantera.questionnaire_depression.fragment;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.pantera.questionnaire_depression.MainActivity;
 import com.example.pantera.questionnaire_depression.QuestionnaireApplication;
 import com.example.pantera.questionnaire_depression.R;
 import com.example.pantera.questionnaire_depression.controller.InformationController;
@@ -38,13 +37,19 @@ import butterknife.Unbinder;
 
 public class InformationFragment extends Fragment {
 
-    @BindView(R.id.tv_wiki) TextView mTvWiki;
-    @BindView(R.id.btnWiki) Button btnWiki;
-    @BindView(R.id.sent_ques_progress) View mProgressView;
-    @BindView(R.id.layout_rv_sent) View mLayoutRecyclerView;
+    @BindView(R.id.tv_wiki)
+    TextView mTvWiki;
+    @BindView(R.id.btnWiki)
+    Button btnWiki;
+    @BindView(R.id.sent_ques_progress)
+    View mProgressView;
+    @BindView(R.id.layout_rv_sent)
+    View mLayoutRecyclerView;
     private View rootView;
+
     private Unbinder unbinder;
     private InformationController informationController;
+    private MainActivity mainActivity;
 
     @Override
     public void onStart() {
@@ -56,6 +61,10 @@ public class InformationFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mainActivity = ((MainActivity) getActivity());
+        if (mainActivity.getSupportActionBar() != null) {
+            mainActivity.getSupportActionBar().setTitle("Informacje");
+        }
         informationController = ((QuestionnaireApplication) getActivity().getApplication()).getInformationController();
     }
 
@@ -74,8 +83,8 @@ public class InformationFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
         unbinder.unbind();
     }
 
@@ -136,7 +145,7 @@ public class InformationFragment extends Fragment {
         });
     }
 
-    public void successLoadWiki(String jsonResponse){
+    public void successLoadWiki(String jsonResponse) {
 
         JsonObject jsonObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
 
@@ -149,17 +158,14 @@ public class InformationFragment extends Fragment {
 
         btnWiki.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                intent.setData(Uri.parse(pages.get("fullurl").toString()));
-                startActivity(intent);
+                String url = pages.get("fullurl").getAsString();
+                mainActivity.openBrowser(url);
             }
         });
     }
 
     public void showError(String msg) {
         showProgress(false);
-        Snackbar.make(mLayoutRecyclerView,msg,Snackbar.LENGTH_LONG).show();
+        Snackbar.make(mLayoutRecyclerView, msg, Snackbar.LENGTH_LONG).show();
     }
 }
