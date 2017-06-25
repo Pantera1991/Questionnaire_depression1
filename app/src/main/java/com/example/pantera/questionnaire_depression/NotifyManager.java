@@ -34,7 +34,7 @@ public class NotifyManager {
         Log.d("settigs val en: ", String.valueOf(notifyEnabled));
         String timeToNotify = preferenceManager.getString(SettingsActivity.KEY_TIME, "");
         Log.d("settings val time: ",timeToNotify);
-        if(notifyEnabled){
+        if(notifyEnabled && !timeToNotify.isEmpty()){
             int[] time = stringTimeToIntArray(timeToNotify);
             DateTime dateTime = new DateTime().withHourOfDay(time[0]).withMinuteOfHour(time[1]).withSecondOfMinute(0).plusMonths(1);
             //DateTime dateTime = new DateTime().plusMinutes(1);

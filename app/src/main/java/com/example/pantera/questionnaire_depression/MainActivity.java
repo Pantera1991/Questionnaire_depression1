@@ -110,6 +110,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         notifyManager = new NotifyManager(this);
+        //notifyManager.onStart();
     }
 
 

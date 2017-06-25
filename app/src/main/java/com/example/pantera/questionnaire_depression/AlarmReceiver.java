@@ -13,7 +13,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         int mNotificationId = 1001;
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher2)
+                .setSmallIcon(R.drawable.ic_assignment_black_24dp)
                 .setContentTitle("Dostępne jest badanie")
                 .setContentText("Wypełnij miesęczny test i wyślij lekarzowi !")
                 .setAutoCancel(true)
